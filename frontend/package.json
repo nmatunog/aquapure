@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prebuild": "../scripts/pre-deploy-check.sh",
+    "predeploy": "../scripts/pre-deploy-check.sh",
+    "deploy": "npm run build"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.0.2",
