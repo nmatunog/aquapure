@@ -1,0 +1,1446 @@
+---
+
+description:
+
+globs:
+
+alwaysApply: true
+
+---
+
+# Tech Stack & Versions
+
+
+
+## Core Technologies
+
+
+
+- **Backend Framework:** NestJS latest
+
+- **Frontend Framework:** Next.js latest (App Router)
+
+- **Language:** TypeScript latest
+
+- **Runtime:** Node.js 20 LTS
+
+- **Database:** PostgreSQL 15+ with Prisma ORM
+
+- **Queue System:** BullMQ with Redis
+
+- **Image Storage & CDN:** BunnyCDN for image hosting and delivery
+
+- **Email Service:** Resend for transactional emails
+
+- **Payment Gateway:** Xendit for payment processing
+
+- **UI Library:** shadcn/ui with TailwindCSS 4.0+
+
+- **Icons:** Lucide React
+
+- **Authentication:** JWT tokens with @nestjs/jwt
+
+- **Validation:** class-validator + react-hook-form + zod
+
+
+
+# Project Architecture & Structure
+
+
+
+1. Follow feature-based folder organization - group by domain, not by file type
+
+2. Keep business logic separate from framework code (controllers, components)
+
+3. Use consistent naming conventions:
+
+   - Files and Folders: kebab-case (e.g., `user-profile.tsx`, `auth-service.ts`)
+
+   - Components: PascalCase (e.g., `UserProfile`, `PaymentForm`)
+
+   - Functions and Variables: camelCase (e.g., `getUserData`, `isAuthenticated`)
+
+   - Constants: UPPER_SNAKE_CASE (e.g., `MAX_RETRY_COUNT`, `API_BASE_URL`)
+
+   - Types and Interfaces: PascalCase (e.g., `UserData`, `ApiResponse`)
+
+4. Implement complete separation between frontend and backend:
+
+   - No shared code, types, or dependencies between services
+
+   - Independent package.json files and build processes
+
+   - API-only communication between frontend and backend
+
+   - Separate deployment pipelines and environments
+
+5. Design API endpoints following RESTful principles with consistent response formats
+
+
+
+# Database & Prisma
+
+
+
+6. Always use Prisma migrations for schema changes - never modify database directly
+
+7. Define proper database constraints and indexes for performance and data integrity
+
+8. Use Prisma relations and cascading deletes appropriately
+
+9. Implement database seeding for development and testing environments
+
+10. Use transactions for multi-table operations to ensure data consistency
+
+
+
+# Backend (NestJS & BullMQ)
+
+
+
+11. Use dependency injection properly - avoid tight coupling between modules
+
+12. Implement proper error handling with custom exceptions and global filters
+
+13. Use DTOs for request/response validation with class-validator decorators
+
+14. Design queue jobs to be idempotent and handle failures gracefully
+
+15. Implement proper logging with structured data for debugging and monitoring
+
+16. Use guards, interceptors, and pipes in the correct order and context
+
+17. Keep controllers thin - delegate business logic to services
+
+18. **NEVER use 'any' type in backend code** - use proper TypeScript interfaces and types
+
+19. Define proper return types for all service methods and controller endpoints
+
+20. Use proper typing for Prisma query results and database operations
+
+
+
+# Frontend (Next.js & shadcn/ui)
+
+
+
+21. Use App Router conventions - avoid mixing with Pages Router patterns
+
+22. Implement proper loading states, error boundaries, and skeleton screens using shadcn/ui components
+
+23. Use Server Components by default, Client Components only when necessary
+
+24. Optimize images with Next.js Image component and proper sizing
+
+25. **MANDATORY: Use shadcn/ui components exclusively** - never create custom UI components from scratch
+
+26. **MANDATORY: Use Tailwind utility classes over custom CSS** - maintain shadcn/ui design system consistency
+
+27. Implement proper form validation with react-hook-form, zod schemas, and shadcn/ui form components
+
+28. **ALWAYS extend shadcn/ui components** - never override core component styles, use composition instead
+
+29. **Use shadcn/ui theming system** - leverage CSS variables and Tailwind config for consistent design tokens
+
+30. **NEVER use 'any' type in frontend code** - use proper TypeScript interfaces and React types
+
+31. Define proper types for all React component props and state
+
+32. Use proper typing for API responses and data fetching operations
+
+
+
+# shadcn/ui Design System Standards
+
+
+
+33. **Component Selection Priority:**
+
+
+
+- 1st: Use existing shadcn/ui components as-is
+
+- 2nd: Compose multiple shadcn/ui components
+
+- 3rd: Extend shadcn/ui components with additional props/variants
+
+- 4th: Create wrapper components that use shadcn/ui internally
+
+- NEVER: Create completely custom UI components
+
+
+
+34. **Styling Guidelines:**
+
+
+
+- Use Tailwind classes that align with shadcn/ui design tokens
+
+- Leverage shadcn/ui CSS variables for theming (--primary, --secondary, etc.)
+
+- Use shadcn/ui size variants (sm, md, lg, xl) instead of custom sizing
+
+- Follow shadcn/ui spacing and typography scales
+
+
+
+# Color Scheme & Design Tokens
+
+
+
+35. **MANDATORY: Always use globals.css color variables** - never use arbitrary colors or hardcoded hex/rgb values
+
+36. **Color Variable Usage:**
+
+   - Use semantic Tailwind color classes that map to CSS variables from globals.css
+
+   - **Background Colors:** `bg-background`, `bg-card`, `bg-popover`, `bg-primary`, `bg-secondary`, `bg-muted`, `bg-accent`, `bg-destructive`
+
+   - **Text Colors:** `text-foreground`, `text-card-foreground`, `text-popover-foreground`, `text-primary-foreground`, `text-secondary-foreground`, `text-muted-foreground`, `text-accent-foreground`, `text-destructive-foreground`
+
+   - **Border Colors:** `border-border`, `border-input`, `ring-ring`
+
+   - **NEVER use arbitrary values:** ❌ `bg-[#ffffff]`, `text-[#000000]`, `border-[#e5e5e5]`
+
+37. **Dark Mode Support:**
+
+   - Colors automatically adapt based on `prefers-color-scheme: dark`
+
+   - All CSS variables have light and dark mode variants defined in globals.css
+
+   - Never override dark mode colors manually - use the globals.css system
+
+   - Test all UI in both light and dark mode
+
+38. **Color Combinations:**
+
+   - Use semantic pairings: `bg-primary` with `text-primary-foreground`
+
+   - Use `bg-card` with `text-card-foreground` for card components
+
+   - Use `bg-muted` with `text-muted-foreground` for subtle backgrounds
+
+   - Use `bg-destructive` with `text-destructive-foreground` for errors/delete actions
+
+39. **Extending Colors:**
+
+   - If you need custom colors, add them to globals.css using the same CSS variable pattern
+
+   - Define both light and dark mode variants in globals.css
+
+   - Use the Tailwind color utility format: `--color-custom-name: H S L;`
+
+   - Never add colors in component files or use inline styles
+
+40. **Typography & Fonts:**
+
+   - Use Geist Sans font (--font-sans) for all text
+
+   - Use Geist Mono font (--font-mono) for code blocks
+
+   - Font families are defined in globals.css and applied automatically
+
+   - Never import or use custom fonts outside of globals.css
+
+41. **Border Radius:**
+
+   - Use `--radius` variable (0.5rem) for consistent rounded corners
+
+   - Apply with: `rounded` (uses --radius), `rounded-sm`, `rounded-md`, `rounded-lg`
+
+   - Never use arbitrary radius values like `rounded-[12px]`
+
+42. **Color Usage Examples:**
+
+   ```tsx
+
+   // ✅ CORRECT: Using globals.css color variables
+
+   <div className="bg-background text-foreground">Content</div>
+
+   <button className="bg-primary text-primary-foreground">Click</button>
+
+   <div className="bg-card text-card-foreground border border-border">Card</div>
+
+   <p className="text-muted-foreground">Secondary text</p>
+
+   
+
+   // ❌ WRONG: Arbitrary colors (avoid these)
+
+   <div className="bg-white text-black">Content</div>
+
+   <button className="bg-[#000000] text-[#ffffff]">Click</button>
+
+   <div className="bg-gray-100 text-gray-900">Card</div>
+
+   ```
+
+
+
+43. **Form Components:**
+
+
+
+- Use shadcn/ui form components (Form, FormField, FormItem, FormLabel, FormControl, FormMessage)
+
+- Integrate with react-hook-form using shadcn/ui form patterns
+
+- Use shadcn/ui input variants (Input, Textarea, Select, Checkbox, RadioGroup, Switch)
+
+- Always use `bg-background`, `text-foreground`, and `border-border` for form consistency
+
+
+
+44. **Layout Components:**
+
+
+
+- Use shadcn/ui layout components (Card, Sheet, Dialog, Drawer, Tabs, Accordion)
+
+- Leverage shadcn/ui navigation components (NavigationMenu, Breadcrumb, Pagination)
+
+- Use shadcn/ui data display components (Table, Badge, Avatar, Separator)
+
+- Apply proper color variables: `bg-card`, `text-card-foreground`, `border-border`
+
+
+
+45. **Interactive Components:**
+
+
+
+- Use shadcn/ui interactive components (Button, DropdownMenu, Popover, Tooltip, AlertDialog)
+
+- Implement shadcn/ui feedback components (Alert, Toast, Progress, Skeleton)
+
+- Use shadcn/ui form controls (Slider, Toggle, Calendar, Command)
+
+- Maintain globals.css color scheme across all interactive states
+
+
+
+# Performance & Optimization
+
+
+
+46. Implement proper caching strategies (Redis, Next.js cache, browser cache)
+
+47. Use database query optimization - avoid N+1 queries with Prisma includes
+
+48. Implement pagination for large datasets with cursor-based pagination
+
+49. Use React.memo, useMemo, and useCallback judiciously - profile before optimizing
+
+50. Optimize bundle size with dynamic imports and code splitting
+
+
+
+# TypeScript & Type Safety
+
+
+
+51. **MANDATORY: Never use 'any' type anywhere in the codebase**
+
+52. Use 'unknown' with type guards for truly unknown data
+
+53. Define explicit return types for all functions and methods
+
+54. Use proper generic constraints and avoid generic 'any' parameters
+
+55. Implement proper error typing with custom error classes
+
+56. Use discriminated unions for state management instead of 'any'
+
+57. Define proper types for all API responses and request payloads
+
+58. Use proper typing for React component props and state
+
+59. Implement proper typing for database models and Prisma queries
+
+60. Use proper typing for event handlers and callback functions
+
+61. Avoid type assertions (as) - prefer type guards and proper typing
+
+
+
+# Security & Validation
+
+
+
+62. Validate all inputs at API boundaries using DTOs and validation pipes
+
+63. Implement proper authentication and authorization with JWT tokens
+
+64. Use environment variables for all configuration - never hardcode secrets
+
+65. Sanitize user inputs to prevent XSS and injection attacks
+
+66. Implement rate limiting and request throttling for API endpoints
+
+
+
+# Development Workflow
+
+
+
+67. Use feature branches with descriptive names (feature/user-authentication)
+
+68. Write meaningful commit messages following conventional commits
+
+69. Implement comprehensive error handling - fail fast and provide clear messages
+
+70. Use TypeScript strict mode and resolve all type errors before deployment:
+
+
+
+- Enable strict mode in tsconfig.json with all strict flags enabled
+
+- **NEVER use 'any' type** - use 'unknown' with type guards instead
+
+- **MANDATORY: Define proper interfaces for all API responses and data models**
+
+- Use generic types for reusable components and functions
+
+- Use union types instead of 'any' for multiple possible types
+
+- Use type assertions only when absolutely necessary and with proper type guards
+
+- Define return types for all functions and methods
+
+- Use proper typing for event handlers and callback functions
+
+- Avoid type assertions (as) - prefer type guards and proper typing
+
+
+
+71. Implement proper logging levels (error, warn, info, debug) with context
+
+72. Use proper import/export patterns:
+
+
+
+- Prefer named imports over default imports
+
+- Use barrel exports (index.ts) for clean imports
+
+- Group related types in dedicated .types.ts files
+
+- Follow import order: Node modules → Internal modules → Relative imports
+
+
+
+# Testing & Quality
+
+
+
+73. Write integration tests for API endpoints and critical user flows
+
+74. Use proper test data factories instead of hardcoded test values
+
+75. Mock external services and databases in unit tests
+
+76. Implement health checks for all external dependencies
+
+77. Use ESLint and Prettier configurations consistently across the project
+
+
+
+# Deployment & Monitoring
+
+
+
+78. Use environment-specific configurations (dev, staging, prod)
+
+79. Implement proper database backup and recovery procedures
+
+80. Monitor application performance and set up alerting for critical failures
+
+81. Use proper secrets management - never commit sensitive data
+
+82. Implement graceful shutdown handling for background jobs and connections
+
+
+
+# Project Structure Organization
+
+
+
+83. Follow complete separation between frontend and backend as defined in standards:
+
+
+
+**Frontend Structure (Next.js - Completely Independent):**
+
+
+
+```
+
+frontend/
+
+├── src/
+
+│   ├── actions/         # Server actions for form handling and mutations
+
+│   ├── app/             # Next.js App Router
+
+│   │   ├── (dashboard)/ # Route groups
+
+│   │   │   └── components/ # Dashboard-specific components
+
+│   │   └── [feature]/   # Feature-based routing
+
+│   │       └── components/ # Feature-specific components
+
+│   ├── components/      # React UI components
+
+│   │   ├── ui/          # shadcn/ui base components (DO NOT MODIFY)
+
+│   │   ├── forms/       # Form components (compose shadcn/ui)
+
+│   │   ├── layout/      # Layout components (compose shadcn/ui)
+
+│   │   └── [feature]/   # Feature-specific components (compose shadcn/ui)
+
+│   ├── hooks/           # Custom React hooks
+
+│   ├── services/        # API client services (HTTP calls to backend)
+
+│   ├── types/           # Frontend-specific TypeScript types
+
+│   └── lib/             # Frontend utilities and configurations
+
+├── package.json         # Independent frontend dependencies
+
+├── next.config.js
+
+├── tailwind.config.js
+
+└── tsconfig.json
+
+```
+
+
+
+**Backend Structure (NestJS - Completely Independent):**
+
+
+
+```
+
+backend/
+
+├── src/
+
+│   ├── auth/            # Authentication module
+
+│   ├── users/           # User management
+
+│   ├── courses/         # Course management
+
+│   ├── common/          # Backend-only utilities
+
+│   │   ├── guards/      # Authentication guards
+
+│   │   ├── decorators/  # Custom decorators
+
+│   │   └── dto/         # Data transfer objects
+
+│   ├── types/           # Backend-specific TypeScript types
+
+│   └── main.ts          # Application entry point
+
+├── package.json         # Independent backend dependencies
+
+├── nest-cli.json
+
+└── tsconfig.json
+
+```
+
+
+
+**Key Principles:**
+
+
+
+- Complete Separation: No shared code, types, or dependencies between frontend and backend
+
+- API Communication: Frontend communicates with backend only through HTTP APIs
+
+- Independent Deployment: Each can be built, tested, and deployed separately
+
+- Technology Independence: Frontend and backend can evolve independently
+
+- Clear Boundaries: API contracts define the interface between services
+
+
+
+**API Communication Patterns:**
+
+
+
+**Frontend API Services:**
+
+
+
+- Create dedicated service classes for each backend module
+
+- Define frontend-specific TypeScript interfaces for API responses
+
+- Handle API errors and loading states in the frontend
+
+- Use environment variables for backend URLs
+
+
+
+**Backend API Design:**
+
+
+
+- Follow RESTful conventions for consistent API design
+
+- Use DTOs for request/response validation
+
+- Implement proper error handling and status codes
+
+- Provide clear API documentation (OpenAPI/Swagger)
+
+
+
+# Next.js App Router Patterns
+
+
+
+84. Use proper layout hierarchy - implement nested layouts for feature areas
+
+85. Implement loading.tsx files for better UX during navigation
+
+86. Use page.tsx as route entry points - keep them minimal and focused
+
+87. Leverage parallel routes and intercepting routes for modals when appropriate
+
+88. Use proper metadata API for SEO (sitemap.ts, robots.ts, icon.tsx patterns)
+
+
+
+# Server Actions & Data Fetching
+
+
+
+89. Organize server actions by domain - match your backend module structure
+
+90. Use proper error handling in server actions with try/catch and return objects
+
+91. Implement proper form submission patterns with server actions
+
+92. Use revalidatePath/revalidateTag for cache invalidation after mutations
+
+93. Keep server actions focused - one action per specific operation
+
+
+
+# Component Architecture (shadcn/ui First)
+
+
+
+94. **MANDATORY: Use shadcn/ui components as base** - extend in feature-specific components only
+
+95. **NEVER create custom UI components** - always start with shadcn/ui and compose/extend as needed
+
+96. Implement proper component composition - avoid prop drilling
+
+97. Use index.ts files for clean component exports from folders
+
+98. **Structure: /components/ui (shadcn/ui only) vs /components/[feature] (business logic)**
+
+99. Create domain-specific component folders (admin/, seller/, buyer/) that compose shadcn/ui components
+
+100. **Use shadcn/ui variants and compound components** - leverage built-in customization patterns
+
+101. **Follow shadcn/ui naming conventions** - maintain consistency with component library patterns
+
+102. **ALWAYS apply globals.css color variables** - use `bg-background`, `text-foreground`, etc. in custom compositions
+
+
+
+# State Management & Client Components
+
+
+
+103. Use React Server Components by default - add 'use client' only when needed
+
+104. **MANDATORY: Avoid unnecessary "use client" directives** - only use when absolutely required for:
+
+    - Event handlers (onClick, onChange, onSubmit)
+
+    - Browser APIs (localStorage, sessionStorage, window, document)
+
+    - React hooks (useState, useEffect, useContext, etc.)
+
+    - Third-party libraries that require client-side execution
+
+    - Interactive components that need client-side state
+
+105. Implement proper form state management with react-hook-form
+
+106. Use URL state for filters, pagination, and shareable UI state
+
+107. Minimize client-side state - prefer server state when possible
+
+108. Use proper loading and error states for async operations
+
+
+
+# API & Route Handlers
+
+
+
+108. Keep API routes minimal - use for edge cases not covered by server actions
+
+109. Implement proper API route structure matching your backend endpoints
+
+110. Use consistent response formats across API routes
+
+111. Handle authentication in API routes using your auth configuration
+
+
+
+# Asset & Image Management
+
+
+
+112. Organize static assets by purpose (images/, icons/, documents/)
+
+113. Use Next.js Image component with proper sizing and optimization
+
+114. Implement proper image fallbacks and error handling
+
+115. Use WebP format for better performance when possible
+
+116. Store user-uploaded images externally (not in public folder)
+
+
+
+# BunnyCDN Image Storage & Delivery
+
+
+
+117. **MANDATORY: Use BunnyCDN for all user-uploaded images** - never store images in the application server
+
+118. **Image Upload Flow:**
+
+   - Upload images directly to BunnyCDN storage via API
+
+   - Store only the CDN URL in the database (not the actual file)
+
+   - Generate unique filenames to prevent collisions (e.g., `uuid-timestamp-filename.ext`)
+
+   - Organize images by category/store (e.g., `/products/`, `/avatars/`, `/stores/`)
+
+119. **Image Optimization:**
+
+   - Use BunnyCDN's image optimization features (WebP conversion, resizing)
+
+   - Implement responsive images with BunnyCDN's URL parameters (`?width=800&quality=85`)
+
+   - Enable lazy loading for images below the fold
+
+   - Use appropriate image formats: WebP for photos, PNG for graphics with transparency
+
+120. **CDN Configuration:**
+
+   - Configure proper cache headers for optimal performance
+
+   - Set up BunnyCDN pull zone for static assets if needed
+
+   - Use environment variables for BunnyCDN storage zone credentials
+
+   - Implement proper error handling for failed uploads
+
+121. **Image Security:**
+
+   - Validate file types and sizes before upload (max 5MB for general images)
+
+   - Sanitize filenames to prevent security issues
+
+   - Implement proper access control for private images if needed
+
+   - Use signed URLs for temporary access to private content
+
+122. **Image Delivery Best Practices:**
+
+   - Always use CDN URLs (not storage URLs) for image delivery
+
+   - Implement proper image loading states and placeholders
+
+   - Use Next.js Image component with BunnyCDN URLs
+
+   - Configure proper `remotePatterns` in next.config.js for BunnyCDN domain
+
+123. **Example Implementation:**
+
+   ```typescript
+
+   // Backend: Upload to BunnyCDN
+
+   async uploadImage(file: Express.Multer.File): Promise<string> {
+
+     const filename = `${uuid()}-${Date.now()}-${file.originalname}`;
+
+     const url = await bunnycdn.upload(filename, file.buffer);
+
+     return url; // Store this URL in database
+
+   }
+
+
+
+   // Frontend: Display with Next.js Image
+
+   <Image 
+
+     src={product.imageUrl} 
+
+     alt={product.name}
+
+     width={800}
+
+     height={600}
+
+     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+
+   />
+
+   ```
+
+
+
+# Resend Email Service
+
+
+
+124. **MANDATORY: Use Resend for all transactional emails** - order confirmations, password resets, notifications
+
+125. **Email Service Architecture:**
+
+   - Create a dedicated email service in the backend (`src/email/email.service.ts`)
+
+   - Define email templates using React Email or HTML templates
+
+   - Use queue system (BullMQ) for sending emails asynchronously
+
+   - Store email API key in environment variables (`RESEND_API_KEY`)
+
+126. **Email Types to Implement:**
+
+   - Order confirmation emails (with order details and receipt)
+
+   - Password reset emails (with secure token link)
+
+   - Account verification emails (with confirmation link)
+
+   - Seller notifications (new order, low stock alerts)
+
+   - Admin notifications (new store registrations, reports)
+
+127. **Email Best Practices:**
+
+   - Use proper sender name and email address (`noreply@yourdomain.com`)
+
+   - Implement email templates with responsive design
+
+   - Include unsubscribe links for marketing emails (not required for transactional)
+
+   - Use proper subject lines that describe the email content
+
+   - Include text fallback for email clients that don't support HTML
+
+128. **Error Handling & Retry Logic:**
+
+   - Implement retry mechanism for failed email sends (3 attempts max)
+
+   - Log all email sending attempts with status
+
+   - Use queue system to handle email sending failures gracefully
+
+   - Notify admins of persistent email delivery issues
+
+129. **Email Security:**
+
+   - Verify sender domain with Resend (SPF, DKIM, DMARC records)
+
+   - Never include sensitive information in email subjects
+
+   - Use secure token links that expire for password resets (15-30 minutes)
+
+   - Implement rate limiting for password reset requests
+
+130. **Example Implementation:**
+
+   ```typescript
+
+   // Backend: Send order confirmation
+
+   async sendOrderConfirmation(order: Order): Promise<void> {
+
+     await this.emailQueue.add('order-confirmation', {
+
+       to: order.customerEmail,
+
+       subject: `Order Confirmation #${order.orderNumber}`,
+
+       template: 'order-confirmation',
+
+       data: { order }
+
+     });
+
+   }
+
+
+
+   // Email Queue Processor
+
+   @Process('order-confirmation')
+
+   async handleOrderConfirmation(job: Job): Promise<void> {
+
+     const { to, subject, data } = job.data;
+
+     await resend.emails.send({
+
+       from: 'orders@yourdomain.com',
+
+       to,
+
+       subject,
+
+       html: await renderEmailTemplate('order-confirmation', data)
+
+     });
+
+   }
+
+   ```
+
+
+
+# Xendit Payment Gateway
+
+
+
+131. **MANDATORY: Use Xendit for all payment processing** - order payments, refunds, and payment verifications
+
+132. **Payment Service Architecture:**
+
+   - Create a dedicated payment service in the backend (`src/payment/payment.service.ts`)
+
+   - Integrate Xendit SDK for payment processing
+
+   - Use queue system (BullMQ) for handling payment webhooks and async operations
+
+   - Store Xendit API keys in environment variables (`XENDIT_SECRET_KEY`, `XENDIT_PUBLIC_KEY`)
+
+133. **Payment Types to Implement:**
+
+   - Invoice payments (e-wallets, bank transfers, retail outlets)
+
+   - Virtual account payments (for bank transfers)
+
+   - E-wallet payments (GCash, PayMaya, GrabPay, etc.)
+
+   - Card payments (credit/debit cards)
+
+   - QR code payments (QRIS)
+
+134. **Payment Flow Best Practices:**
+
+   - Create payment invoice on order creation
+
+   - Send payment link to customer via email/SMS
+
+   - Implement webhook handler for payment status updates
+
+   - Update order status based on payment confirmation
+
+   - Store payment reference IDs and transaction details in database
+
+   - Handle payment expiration (invoices expire after 24 hours by default)
+
+135. **Webhook Security:**
+
+   - Verify Xendit webhook signatures using callback token
+
+   - Implement idempotent webhook handlers (check for duplicate events)
+
+   - Log all webhook events for audit trail
+
+   - Use proper error handling and retry logic for webhook failures
+
+   - Set up webhook URL in Xendit dashboard (e.g., `https://yourdomain.com/api/webhooks/xendit`)
+
+136. **Payment Error Handling:**
+
+   - Implement retry mechanism for failed payment operations
+
+   - Handle payment failures gracefully with user-friendly error messages
+
+   - Notify customers of payment status changes via email
+
+   - Provide manual payment verification for edge cases
+
+   - Log all payment errors with context for debugging
+
+137. **Refund Implementation:**
+
+   - Implement refund functionality through Xendit API
+
+   - Track refund status and update order accordingly
+
+   - Send refund confirmation emails to customers
+
+   - Handle partial refunds and full refunds
+
+   - Set up proper refund policies (refund processing time, conditions)
+
+138. **Payment Security:**
+
+   - Never store credit card details on your server (use Xendit's tokenization)
+
+   - Use HTTPS for all payment-related endpoints
+
+   - Implement rate limiting on payment endpoints to prevent abuse
+
+   - Validate payment amounts on backend before processing
+
+   - Use proper access control for payment admin functions
+
+139. **Example Implementation:**
+
+   ```typescript
+
+   // Backend: Create payment invoice
+
+   async createPaymentInvoice(order: Order): Promise<string> {
+
+     const invoice = await xendit.Invoice.createInvoice({
+
+       externalId: order.orderNumber,
+
+       amount: order.totalAmount,
+
+       payerEmail: order.customerEmail,
+
+       description: `Payment for Order #${order.orderNumber}`,
+
+       invoiceDuration: 86400, // 24 hours
+
+       successRedirectUrl: `${process.env.FRONTEND_URL}/orders/${order.id}/success`,
+
+       failureRedirectUrl: `${process.env.FRONTEND_URL}/orders/${order.id}/failed`,
+
+     });
+
+     return invoice.invoice_url;
+
+   }
+
+
+
+   // Webhook Handler
+
+   @Post('webhooks/xendit')
+
+   async handlePaymentWebhook(@Body() payload: any, @Headers('x-callback-token') token: string) {
+
+     // Verify webhook signature
+
+     if (token !== process.env.XENDIT_WEBHOOK_TOKEN) {
+
+       throw new UnauthorizedException('Invalid webhook token');
+
+     }
+
+
+
+     // Handle payment status updates
+
+     if (payload.status === 'PAID') {
+
+       await this.ordersService.updateOrderStatus(payload.external_id, 'PAID');
+
+       await this.emailService.sendPaymentConfirmation(payload.external_id);
+
+     }
+
+   }
+
+   ```
+
+
+
+# Authentication & Authorization
+
+
+
+140. Use middleware.ts for route protection and redirects
+
+141. Implement proper role-based access control in layouts and components
+
+142. Handle authentication state consistently across the application
+
+143. Use proper session management with your auth provider
+
+144. Implement proper logout and session cleanup
+
+
+
+# Development & Build Optimization
+
+
+
+145. Use TypeScript strict mode - your tsconfig.json should enforce strict typing
+
+146. Implement proper environment variable validation (lib/env.ts pattern)
+
+147. Use proper build optimization with Next.js config
+
+148. Implement proper bundle analysis and monitoring
+
+149. Use proper ESLint and Prettier configuration for consistency
+
+
+
+# Mobile-First Design Implementation
+
+
+
+150. **MANDATORY: Design for mobile screens first, then progressively enhance for larger screens**
+
+151. **Use Tailwind's mobile-first breakpoint system** - base styles apply to mobile, use `sm:`, `md:`, `lg:`, `xl:`, `2xl:` for larger screens
+
+152. **Follow Tailwind breakpoint conventions:**
+
+
+
+- Base (default): 0px - 640px (mobile)
+
+- `sm:` 640px+ (large mobile/small tablet)
+
+- `md:` 768px+ (tablet)
+
+- `lg:` 1024px+ (desktop)
+
+- `xl:` 1280px+ (large desktop)
+
+- `2xl:` 1536px+ (extra large desktop)
+
+
+
+153. **Mobile-First CSS Patterns:**
+
+
+
+```tsx
+
+// ✅ CORRECT: Mobile-first approach with globals.css colors
+
+<div className="text-sm md:text-base lg:text-lg text-foreground">Content</div>
+
+<div className="p-4 md:p-6 lg:p-8 bg-background">Section</div>
+
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">Cards</div>
+
+
+
+// ❌ WRONG: Desktop-first approach or arbitrary colors (avoid this)
+
+<div className="text-lg md:text-base sm:text-sm text-[#000000]">Content</div>
+
+```
+
+
+
+154. **Touch-Friendly Interactions:**
+
+
+
+- Minimum touch target size: 44x44px (use `min-h-11 min-w-11` or larger)
+
+- Add proper spacing between interactive elements (at least 8px gap)
+
+- Use larger buttons on mobile: `py-3 px-6 md:py-2 md:px-4`
+
+- Implement touch-friendly form controls with adequate padding
+
+- Avoid hover-only interactions - provide tap/click alternatives
+
+- **Use globals.css color variables for all interactive states**: `bg-primary hover:bg-primary/90`
+
+
+
+155. **Mobile Navigation Patterns:**
+
+
+
+- Use hamburger menu or bottom navigation for mobile
+
+- Implement shadcn/ui Sheet component for mobile drawer menus
+
+- Use shadcn/ui NavigationMenu with responsive variants
+
+- Keep mobile navigation simple - max 5 primary items
+
+- Position CTAs within thumb reach (bottom or top-right on mobile)
+
+- **Apply proper color scheme**: `bg-background`, `text-foreground`, `border-border`
+
+
+
+156. **Responsive Typography:**
+
+
+
+- Use responsive font sizes: `text-2xl md:text-3xl lg:text-4xl`
+
+- Maintain readability: minimum 16px (text-base) for body text on mobile
+
+- Use tighter line-height on mobile: `leading-tight md:leading-normal`
+
+- Limit line length: `max-w-prose` for better readability
+
+- Scale headings appropriately: `text-3xl md:text-4xl lg:text-5xl xl:text-6xl`
+
+- **Always use globals.css text colors**: `text-foreground`, `text-muted-foreground`
+
+
+
+157. **Responsive Spacing:**
+
+
+
+- Use smaller spacing on mobile: `space-y-4 md:space-y-6 lg:space-y-8`
+
+- Container padding: `px-4 md:px-6 lg:px-8`
+
+- Section spacing: `py-8 md:py-12 lg:py-16`
+
+- Grid gaps: `gap-4 md:gap-6 lg:gap-8`
+
+- Use shadcn/ui spacing scale for consistency
+
+
+
+158. **Mobile Form Best Practices:**
+
+
+
+- Stack form fields vertically on mobile (default shadcn/ui behavior)
+
+- Use full-width inputs on mobile: `w-full`
+
+- Implement proper input types for mobile keyboards (`type="email"`, `type="tel"`, `type="number"`)
+
+- Use large, easy-to-tap submit buttons: `w-full py-3 md:w-auto md:py-2`
+
+- Minimize required fields for mobile users
+
+- Use shadcn/ui Form components with responsive layouts
+
+- **Apply globals.css colors**: `bg-background`, `border-input`, `text-foreground`
+
+
+
+159. **Responsive Images & Media:**
+
+
+
+- Always use Next.js Image component with responsive sizes
+
+- Define appropriate sizes prop: `sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"`
+
+- Use object-fit for consistent image display: `object-cover` or `object-contain`
+
+- Implement lazy loading by default (Next.js Image does this)
+
+- Use smaller images on mobile to reduce bandwidth
+
+- Consider art direction with different images per breakpoint using `<picture>` when needed
+
+- **Use BunnyCDN for all images** with proper optimization parameters
+
+
+
+160. **Mobile Performance Optimization:**
+
+
+
+- Lazy load content below the fold
+
+- Use dynamic imports for heavy components on mobile
+
+- Minimize JavaScript bundle size for mobile
+
+- Implement code splitting by route
+
+- Use next/font for optimized font loading
+
+- Avoid large animations or effects on mobile
+
+- Test performance on actual mobile devices (not just DevTools)
+
+
+
+161. **Responsive Layouts with shadcn/ui:**
+
+
+
+- Use responsive grid patterns: `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3`
+
+- Implement responsive Card layouts: stack on mobile, grid on desktop
+
+- Use shadcn/ui Drawer for mobile, Dialog for desktop modals
+
+- Implement responsive Tables: use shadcn/ui Table with horizontal scroll on mobile
+
+- Use Accordion for mobile, Tabs for desktop when appropriate
+
+- **Maintain globals.css color scheme across all layouts**
+
+
+
+162. **Mobile-Specific Features:**
+
+
+
+- Implement pull-to-refresh where appropriate
+
+- Use native device features: geolocation, camera, etc.
+
+- Implement share functionality using Web Share API
+
+- Consider bottom sheets for mobile actions
+
+- Use sticky headers/footers sparingly - preserve screen real estate
+
+
+
+163. **Content Strategy for Mobile:**
+
+
+
+- Prioritize content for mobile screens - show most important info first
+
+- Use progressive disclosure - reveal details on demand
+
+- Implement "Show More" patterns for long content
+
+- Keep paragraphs shorter on mobile
+
+- Use bullet points and scannable content
+
+- Hide non-essential content on mobile with `hidden md:block`
+
+
+
+164. **Responsive Component Patterns:**
+
+
+
+```tsx
+
+// Responsive padding
+
+<div className="p-4 md:p-6 lg:p-8">
+
+
+
+// Responsive text alignment  
+
+<h1 className="text-center md:text-left">
+
+
+
+// Responsive flex direction
+
+<div className="flex flex-col md:flex-row">
+
+
+
+// Responsive display
+
+<div className="hidden md:block">Desktop only</div>
+
+<div className="block md:hidden">Mobile only</div>
+
+
+
+// Responsive grid
+
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+```
+
+
+
+165. **Testing Mobile Designs:**
+
+
+
+- Test on real devices, not just browser DevTools
+
+- Test on multiple screen sizes: 320px, 375px, 414px, 768px
+
+- Test on both iOS and Android devices
+
+- Test touch interactions and gestures
+
+- Test form inputs with mobile keyboards
+
+- Test performance on slower mobile networks (3G simulation)
+
+- Use Chrome DevTools mobile emulation for quick testing
+
+- **Verify globals.css colors render correctly in both light and dark mode**
+
+
+
+166. **Accessibility on Mobile:**
+
+
+
+- Ensure sufficient color contrast (4.5:1 minimum)
+
+- Make touch targets large enough (44x44px minimum)
+
+- Support both portrait and landscape orientations
+
+- Test with screen readers (VoiceOver on iOS, TalkBack on Android)
+
+- Provide visible focus indicators for keyboard navigation
+
+- Ensure forms work with autofill and password managers
+
+- **globals.css color variables provide automatic dark mode support**
+
+
+
+167. **Mobile-First Development Workflow:**
+
+
+
+- Start design and development with mobile viewport (375px)
+
+- Add tablet styles next (768px)
+
+- Add desktop styles last (1024px+)
+
+- Review each breakpoint transition
+
+- Test with real content, not lorem ipsum
+
+- Optimize for thumb zones on mobile screens
+
+- **Always reference globals.css for color consistency across all breakpoints**
+

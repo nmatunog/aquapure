@@ -1,0 +1,71 @@
+// Prisma Schema for Aquapure Sales Portal
+// Database: PostgreSQL 15+
+// Following coding standards: Rule 6-10
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and profiles
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  team      String
+  email     String?  @unique
+  password  String?  // For future password-based auth
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  audits  Audit[]
+  metrics WeeklyMetrics?
+
+  @@index([email])
+  @@map("users")
+}
+
+// Audit model for saved audits (Dealer, HOA, Industrial)
+model Audit {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // 'Dealer' | 'HOA' | 'Industrial'
+  data      Json     // Flexible JSON structure for different audit types
+  summary   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("audits")
+}
+
+// Weekly metrics model for scorecard
+model WeeklyMetrics {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  dealerAudits       Int      @default(0)
+  hoaSurveys         Int      @default(0)
+  industrialMeetings Int      @default(0)
+  dealerConversions  Int      @default(0)
+  newRefillStations  Int      @default(0)
+  bulkContracts      Int      @default(0)
+  weekStartDate      DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([weekStartDate])
+  @@map("weekly_metrics")
+}
