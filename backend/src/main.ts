@@ -4,8 +4,19 @@
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { AppModule } from './app.module'
+import { execSync } from 'child_process'
 
 async function bootstrap(): Promise<void> {
+  // Run database migrations before starting the app
+  try {
+    console.log('🔄 Running database migrations...')
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' })
+    console.log('✅ Database migrations completed')
+  } catch (error) {
+    console.error('❌ Migration failed:', error)
+    // Continue anyway - might be a connection issue that will resolve
+  }
+
   const app = await NestFactory.create(AppModule)
 
   // Enable CORS for frontend communication

@@ -49,12 +49,16 @@ Fill in the form:
 npm install && npm run build
 ```
 
-**Note:** Make sure `npm install` installs dev dependencies (Render does this by default, but if issues persist, use `npm ci` or `npm install --include=dev`)
+**Note:** 
+- `npm install` will automatically run `prisma generate` (via postinstall script)
+- This ensures Prisma client is generated during build
 
 **Start Command:**
 ```
 npm run start:prod
 ```
+
+**Note:** The start command will automatically run `prisma migrate deploy` to create database tables before starting the server.
 
 **Plan:** **Free** (select this!)
 
