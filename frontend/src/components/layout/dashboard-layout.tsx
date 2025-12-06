@@ -5,7 +5,6 @@
 
 import { useState, useEffect } from 'react'
 import { BookOpen, Calculator, BarChart3, Briefcase, LogOut, Droplets } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { authService } from '@/services'
 import { LoginView } from '@/components/auth/login-view'
 import { WorkshopView } from '@/components/workshop/workshop-view'
