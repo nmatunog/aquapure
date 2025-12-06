@@ -1,12 +1,11 @@
-// Login DTO - Request validation
-// Following coding standards: Rule 13, Rule 18
+// Login DTO
+// Following coding standards: Rule 13, Rule 18, Rule 19
 
-import { IsString, IsNotEmpty, MinLength } from 'class-validator'
+import { IsString, IsNotEmpty } from 'class-validator'
 
 export class LoginDto {
   @IsString()
   @IsNotEmpty()
-  @MinLength(1)
   name: string
 
   @IsString()

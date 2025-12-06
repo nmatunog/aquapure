@@ -1,5 +1,5 @@
-// Authentication Module
-// Following coding standards: Rule 11
+// Auth Module - JWT authentication
+// Following coding standards: Rule 11, Rule 41
 
 import { Module } from '@nestjs/common'
 import { JwtModule } from '@nestjs/jwt'

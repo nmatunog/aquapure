@@ -1,86 +1,62 @@
-// Frontend-specific TypeScript types
-// No 'any' types allowed - all types must be explicitly defined
+// Application types
+// Following coding standards: Rule 30, Rule 31
 
 export interface UserProfile {
-  name: string;
-  team: string;
-}
-
-export interface DealerAuditData {
-  dailyOutput: number;
-  sellingPrice: number;
-  electricity: number;
-  rent: number;
-  labor: number;
-  maint: number;
-  daysOpen: number;
-  netProfit?: number;
-}
-
-export interface HOAAuditData {
-  units: number;
-  deliveryRisk: string;
-  waterSource: string;
-  wastePerUnit: number;
-  deliveriesPerUnit: number;
-  complaints: number;
-}
-
-export interface IndustrialAuditData {
-  type: string;
-  downtimeCost: number;
-  reliability: 'Low' | 'Medium' | 'High';
-  repairTime: number;
-  risk?: number;
-}
-
-export type AuditType = 'Dealer' | 'HOA' | 'Industrial';
-
-export interface SavedAudit {
-  id: string;
-  type: AuditType;
-  data: DealerAuditData | HOAAuditData | IndustrialAuditData;
-  timestamp: {
-    seconds: number;
-    nanoseconds: number;
-  } | null;
-  summary: string;
-  createdAt?: string; // API response format
+  id: string
+  name: string
+  team: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface WeeklyMetrics {
-  dealerAudits: number;
-  hoaSurveys: number;
-  industrialMeetings: number;
-  dealerConversions: number;
-  newRefillStations: number;
-  bulkContracts: number;
+  dealerAudits: number
+  hoaSurveys: number
+  industrialMeetings: number
+  dealerConversions: number
+  newRefillStations: number
+  bulkContracts: number
 }
 
-export interface LoginData {
-  name: string;
-  team: string;
+export interface DealerAuditData {
+  dailyOutput: number
+  sellingPrice: number
+  electricity: number
+  rent: number
+  labor: number
+  maint: number
+  daysOpen: number
+  netProfit?: number
 }
 
-export interface ClientTypeOption {
-  value: 'dealer' | 'hoa' | 'industrial';
-  label: string;
+export interface HOAAuditData {
+  units: number
+  deliveryRisk: string
+  waterSource: string
+  wastePerUnit: number
+  deliveriesPerUnit: number
+  complaints: number
 }
 
-export interface MetricCardProps {
-  title: string;
-  metricKey: keyof WeeklyMetrics;
-  target: number;
-  color: string;
-  metrics: WeeklyMetrics;
-  onUpdate: (key: keyof WeeklyMetrics, change: number) => void;
+export interface IndustrialAuditData {
+  type: string
+  downtimeCost: number
+  reliability: string
+  repairTime: number
+  risk?: number
 }
 
-export interface PivotItem {
-  icon: React.ReactNode;
-  title: string;
-  from: string;
-  to: string;
-  strategy: string;
+export type AuditData = DealerAuditData | HOAAuditData | IndustrialAuditData
+
+export interface SavedAudit {
+  id: string
+  type: 'Dealer' | 'HOA' | 'Industrial'
+  data: AuditData
+  summary: string
+  createdAt: string
 }
+
+export type ClientType = 'dealer' | 'hoa' | 'industrial'
+
+export type ViewType = 'workshop' | 'audit' | 'scorecard' | 'reports'
 

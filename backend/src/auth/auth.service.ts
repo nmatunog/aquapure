@@ -1,21 +1,36 @@
-// Authentication Service
-// Following coding standards: Rule 11, Rule 12, Rule 13, Rule 18, Rule 19
+// Auth Service - JWT authentication and user management
+// Following coding standards: Rule 11, Rule 12, Rule 17, Rule 18, Rule 19, Rule 20
 
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { PrismaService } from '../prisma/prisma.service'
-import { LoginDto } from './dto/login.dto'
-import { AuthResponseDto } from './dto/auth-response.dto'
-import { JwtPayload } from './strategies/jwt.strategy'
+import { LoginDto } from '../common/dto/login.dto'
+import * as bcrypt from 'bcryptjs'
+
+export interface JwtPayload {
+  userId: string
+  name: string
+  team: string
+}
+
+export interface LoginResponse {
+  user: {
+    id: string
+    name: string
+    team: string
+  }
+  token: string
+  refreshToken?: string
+}
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService,
+    private jwtService: JwtService
   ) {}
 
-  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+  async login(loginDto: LoginDto): Promise<LoginResponse> {
     // Find or create user
     let user = await this.prisma.user.findFirst({
       where: {
@@ -25,6 +40,7 @@ export class AuthService {
     })
 
     if (!user) {
+      // Create new user if doesn't exist
       user = await this.prisma.user.create({
         data: {
           name: loginDto.name,
@@ -33,9 +49,11 @@ export class AuthService {
       })
     }
 
+    // Generate JWT token
     const payload: JwtPayload = {
-      sub: user.id,
-      email: user.email || undefined,
+      userId: user.id,
+      name: user.name,
+      team: user.team,
     }
 
     const token = this.jwtService.sign(payload)
@@ -50,14 +68,29 @@ export class AuthService {
     }
   }
 
-  async getProfile(userId: string) {
+  async validateUser(userId: string): Promise<JwtPayload | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    })
+
+    if (!user) {
+      return null
+    }
+
+    return {
+      userId: user.id,
+      name: user.name,
+      team: user.team,
+    }
+  }
+
+  async getProfile(userId: string): Promise<{ id: string; name: string; team: string; createdAt: Date; updatedAt: Date }> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
         name: true,
         team: true,
-        email: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -70,32 +103,21 @@ export class AuthService {
     return user
   }
 
-  async updateProfile(userId: string, name: string, team: string) {
-    return this.prisma.user.update({
+  async updateProfile(userId: string, profileData: LoginDto): Promise<{ id: string; name: string; team: string; createdAt: Date; updatedAt: Date }> {
+    const user = await this.prisma.user.update({
       where: { id: userId },
       data: {
-        name,
-        team,
+        name: profileData.name,
+        team: profileData.team,
       },
       select: {
         id: true,
         name: true,
         team: true,
-        email: true,
         createdAt: true,
         updatedAt: true,
       },
     })
-  }
-
-  async validateUser(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    })
-
-    if (!user) {
-      throw new UnauthorizedException('User not found')
-    }
 
     return user
   }

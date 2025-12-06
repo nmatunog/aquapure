@@ -1,92 +1,113 @@
-// API client utility for making HTTP requests to NestJS backend
-// Follows RESTful principles with consistent response formats
+// Base API client with error handling
+// Following coding standards: Rule 30, Rule 31, Rule 58, Rule 62
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+import { env } from './env'
+import type { ApiResponse, ApiError } from '../types/api'
 
-interface RequestOptions extends RequestInit {
-  token?: string
+export class ApiClientError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number,
+    public error?: string
+  ) {
+    super(message)
+    this.name = 'ApiClientError'
+  }
 }
 
-async function apiRequest<T>(
-  endpoint: string,
-  options: RequestOptions = {}
-): Promise<T> {
-  const { token, ...fetchOptions } = options
+class ApiClient {
+  private baseUrl: string
+  private token: string | null = null
 
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...fetchOptions.headers,
-  }
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-
-  const url = `${API_BASE_URL}${endpoint}`
-
-  try {
-    const response = await fetch(url, {
-      ...fetchOptions,
-      headers,
-    })
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: `HTTP error! status: ${response.status}`,
-        statusCode: response.status,
-      }))
-      throw error
+  constructor() {
+    this.baseUrl = env.apiUrl
+    // Load token from localStorage if available (client-side only)
+    if (typeof window !== 'undefined') {
+      this.token = localStorage.getItem('auth_token')
     }
+  }
 
-    const data = await response.json()
-    return data
-  } catch (error) {
-    if (error instanceof Error) {
-      throw {
-        message: error.message,
-        statusCode: 500,
+  setToken(token: string | null): void {
+    this.token = token
+    if (typeof window !== 'undefined') {
+      if (token) {
+        localStorage.setItem('auth_token', token)
+      } else {
+        localStorage.removeItem('auth_token')
       }
     }
-    throw error
+  }
+
+  getToken(): string | null {
+    return this.token
+  }
+
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> {
+    const url = `${this.baseUrl}${endpoint}`
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    }
+
+    // Add auth token if available
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`
+    }
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        const error: ApiError = {
+          message: data.message || 'An error occurred',
+          statusCode: response.status,
+          error: data.error,
+        }
+        throw new ApiClientError(error.message, error.statusCode, error.error)
+      }
+
+      return data as ApiResponse<T>
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        throw error
+      }
+      throw new ApiClientError(
+        error instanceof Error ? error.message : 'Network error occurred',
+        0
+      )
+    }
+  }
+
+  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'GET' })
+  }
+
+  async post<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  }
+
+  async put<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  }
+
+  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'DELETE' })
   }
 }
 
-export function get<T>(endpoint: string, token?: string): Promise<T> {
-  return apiRequest<T>(endpoint, {
-    method: 'GET',
-    token,
-  })
-}
-
-export function post<T>(
-  endpoint: string,
-  body: unknown,
-  token?: string
-): Promise<T> {
-  return apiRequest<T>(endpoint, {
-    method: 'POST',
-    body: JSON.stringify(body),
-    token,
-  })
-}
-
-export function put<T>(
-  endpoint: string,
-  body: unknown,
-  token?: string
-): Promise<T> {
-  return apiRequest<T>(endpoint, {
-    method: 'PUT',
-    body: JSON.stringify(body),
-    token,
-  })
-}
-
-export function del<T>(endpoint: string, token?: string): Promise<T> {
-  return apiRequest<T>(endpoint, {
-    method: 'DELETE',
-    token,
-  })
-}
+export const apiClient = new ApiClient()
 

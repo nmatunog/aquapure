@@ -1,19 +1,19 @@
-// API request and response types
-// Frontend-specific types for API communication with NestJS backend
+// API response types
+// Following coding standards: Rule 30, Rule 31, Rule 57
 
 export interface ApiResponse<T> {
   data: T
-  message?: string
   success: boolean
+  message?: string
 }
 
 export interface ApiError {
   message: string
-  statusCode: number
+  statusCode?: number
   error?: string
 }
 
-// Authentication types
+// Auth types
 export interface LoginRequest {
   name: string
   team: string
@@ -29,14 +29,7 @@ export interface LoginResponse {
   refreshToken?: string
 }
 
-export interface AuthUser {
-  id: string
-  name: string
-  team: string
-}
-
-// Profile types
-export interface ProfileResponse {
+export interface UserProfile {
   id: string
   name: string
   team: string
@@ -45,28 +38,22 @@ export interface ProfileResponse {
 }
 
 // Audit types
-export interface SaveAuditRequest {
-  type: 'Dealer' | 'HOA' | 'Industrial'
-  data: unknown // Will be DealerAuditData | HOAAuditData | IndustrialAuditData
-}
-
-export interface SaveAuditResponse {
-  id: string
-  type: 'Dealer' | 'HOA' | 'Industrial'
+export interface CreateAuditRequest {
+  type: string
+  data: Record<string, unknown>
   summary: string
-  createdAt: string
 }
 
-export interface SavedAuditResponse {
+export interface Audit {
   id: string
-  type: 'Dealer' | 'HOA' | 'Industrial'
-  data: unknown
+  type: string
+  data: Record<string, unknown>
   summary: string
   createdAt: string
 }
 
 // Metrics types
-export interface WeeklyMetricsResponse {
+export interface WeeklyMetrics {
   dealerAudits: number
   hoaSurveys: number
   industrialMeetings: number
@@ -76,7 +63,7 @@ export interface WeeklyMetricsResponse {
 }
 
 export interface UpdateMetricRequest {
-  metricKey: keyof WeeklyMetricsResponse
+  metricKey: keyof WeeklyMetrics
   value: number
 }
 

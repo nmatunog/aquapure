@@ -1,45 +1,68 @@
 'use client'
 
+// Scorecard Component
+// Following coding standards: Rule 30, Rule 31, Rule 58, Rule 104
+
 import { useState, useEffect } from 'react'
 import { CheckCircle } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { WeeklyMetrics, MetricCardProps } from '@/types'
-import { metricsService } from '@/services/metrics-service'
-import { authStorage } from '@/lib/auth-storage'
+import { Badge } from '@/components/ui/badge'
+import { metricsService } from '@/services'
+import type { WeeklyMetrics } from '@/types'
 
-function MetricCard({ title, metricKey, target, color, metrics, onUpdate }: MetricCardProps): JSX.Element {
-  const progressPercentage = Math.min(100, ((metrics[metricKey] || 0) / target) * 100)
+interface MetricCardProps {
+  title: string
+  metricKey: keyof WeeklyMetrics
+  value: number
+  target: number
+  color: string
+  onIncrement: () => void
+  onDecrement: () => void
+}
+
+function MetricCard({
+  title,
+  value,
+  target,
+  color,
+  onIncrement,
+  onDecrement,
+}: MetricCardProps): JSX.Element {
+  const percentage = Math.min(100, (value / target) * 100)
 
   return (
     <Card>
-      <CardContent className="p-4">
-        <h4 className="font-bold text-card-foreground text-sm mb-2">{title}</h4>
-        <div className="flex justify-between items-end">
-          <span className="text-3xl font-bold text-foreground">{metrics[metricKey] || 0}</span>
+      <CardHeader>
+        <CardTitle className="text-sm font-bold text-foreground">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex justify-between items-end mb-3">
+          <span className="text-3xl font-bold text-foreground">{value}</span>
           <div className="flex gap-1">
             <Button
               variant="outline"
               size="icon"
-              className="h-6 w-6"
-              onClick={() => onUpdate(metricKey, -1)}
+              className="w-6 h-6"
+              onClick={onDecrement}
+              disabled={value === 0}
             >
-              -
+              <span className="text-xs">-</span>
             </Button>
             <Button
               variant="default"
               size="icon"
-              className="h-6 w-6"
-              onClick={() => onUpdate(metricKey, 1)}
+              className="w-6 h-6"
+              onClick={onIncrement}
             >
-              +
+              <span className="text-xs">+</span>
             </Button>
           </div>
         </div>
-        <div className="w-full bg-muted h-1.5 mt-3 rounded-full overflow-hidden">
+        <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
           <div
             className={`h-full ${color}`}
-            style={{ width: `${progressPercentage}%` }}
+            style={{ width: `${percentage}%` }}
           />
         </div>
       </CardContent>
@@ -56,44 +79,46 @@ export function Scorecard(): JSX.Element {
     newRefillStations: 0,
     bulkContracts: 0,
   })
-  const [loading, setLoading] = useState<boolean>(true)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [updating, setUpdating] = useState<string | null>(null)
 
   useEffect(() => {
-    const loadMetrics = async (): Promise<void> => {
-      const token = authStorage.getToken()
-      if (!token) {
-        setLoading(false)
-        return
-      }
-
-      try {
-        const data = await metricsService.getMetrics(token)
-        setMetrics(data)
-      } catch (error) {
-        console.error('Error loading metrics', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     loadMetrics()
   }, [])
 
+  const loadMetrics = async (): Promise<void> => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await metricsService.getMetrics()
+      setMetrics(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load metrics')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const updateMetric = async (key: keyof WeeklyMetrics, change: number): Promise<void> => {
-    const token = authStorage.getToken()
-    if (!token) return
-
     const newVal = Math.max(0, (metrics[key] || 0) + change)
-    const newMetrics: WeeklyMetrics = { ...metrics, [key]: newVal }
+    const newMetrics = { ...metrics, [key]: newVal }
 
-    setMetrics(newMetrics) // Optimistic update
+    // Optimistic update
+    setMetrics(newMetrics)
+    setUpdating(key)
 
     try {
-      await metricsService.updateMetric({ metricKey: key, value: newVal }, token)
-    } catch (error) {
-      console.error('Error updating metric', error)
+      await metricsService.updateMetric({
+        metricKey: key,
+        value: newVal,
+      })
+    } catch (err) {
       // Revert on error
       setMetrics(metrics)
+      setError(err instanceof Error ? err.message : 'Failed to update metric')
+    } finally {
+      setUpdating(null)
     }
   }
 
@@ -103,14 +128,29 @@ export function Scorecard(): JSX.Element {
     )
   }
 
+  if (error) {
+    return (
+      <div className="p-8 text-center">
+        <div className="bg-destructive/10 text-destructive p-4 rounded-lg border border-destructive/20 mb-4">
+          {error}
+        </div>
+        <Button onClick={loadMetrics} variant="outline">
+          Retry
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-8">
-      <div className="flex justify-between items-center flex-col sm:flex-row gap-4">
+      <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-foreground">Live Weekly Scorecard</h2>
-        <div className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-bold flex items-center gap-1">
-          <CheckCircle className="w-3 h-3" /> Auto-Saving
-        </div>
+        <Badge variant="secondary" className="bg-primary/10 text-primary flex items-center gap-1">
+          <CheckCircle className="w-3 h-3" />
+          Auto-Saving
+        </Badge>
       </div>
+
       <div className="space-y-6">
         <div>
           <h3 className="text-sm font-bold text-primary uppercase mb-3">Lead Measures (Activity)</h3>
@@ -118,55 +158,62 @@ export function Scorecard(): JSX.Element {
             <MetricCard
               title="Dealer Audits"
               metricKey="dealerAudits"
+              value={metrics.dealerAudits}
               target={5}
               color="bg-primary"
-              metrics={metrics}
-              onUpdate={updateMetric}
+              onIncrement={() => updateMetric('dealerAudits', 1)}
+              onDecrement={() => updateMetric('dealerAudits', -1)}
             />
             <MetricCard
               title="HOA Surveys"
               metricKey="hoaSurveys"
+              value={metrics.hoaSurveys}
               target={3}
               color="bg-primary"
-              metrics={metrics}
-              onUpdate={updateMetric}
+              onIncrement={() => updateMetric('hoaSurveys', 1)}
+              onDecrement={() => updateMetric('hoaSurveys', -1)}
             />
             <MetricCard
               title="Comm-Ind Consults"
               metricKey="industrialMeetings"
+              value={metrics.industrialMeetings}
               target={2}
-              color="bg-primary"
-              metrics={metrics}
-              onUpdate={updateMetric}
+              color="bg-muted-foreground"
+              onIncrement={() => updateMetric('industrialMeetings', 1)}
+              onDecrement={() => updateMetric('industrialMeetings', -1)}
             />
           </div>
         </div>
+
         <div>
           <h3 className="text-sm font-bold text-primary uppercase mb-3">Lag Measures (Results)</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <MetricCard
               title="Dealer Wins"
               metricKey="dealerConversions"
+              value={metrics.dealerConversions}
               target={1}
               color="bg-primary"
-              metrics={metrics}
-              onUpdate={updateMetric}
+              onIncrement={() => updateMetric('dealerConversions', 1)}
+              onDecrement={() => updateMetric('dealerConversions', -1)}
             />
             <MetricCard
               title="Stations Installed"
               metricKey="newRefillStations"
+              value={metrics.newRefillStations}
               target={1}
               color="bg-primary"
-              metrics={metrics}
-              onUpdate={updateMetric}
+              onIncrement={() => updateMetric('newRefillStations', 1)}
+              onDecrement={() => updateMetric('newRefillStations', -1)}
             />
             <MetricCard
               title="Contracts Signed"
               metricKey="bulkContracts"
+              value={metrics.bulkContracts}
               target={1}
               color="bg-primary"
-              metrics={metrics}
-              onUpdate={updateMetric}
+              onIncrement={() => updateMetric('bulkContracts', 1)}
+              onDecrement={() => updateMetric('bulkContracts', -1)}
             />
           </div>
         </div>

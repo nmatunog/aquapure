@@ -1,9 +1,15 @@
 'use client'
 
+// Login View Component
+// Following coding standards: Rule 27, Rule 30, Rule 31, Rule 104
+
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import { Droplets } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -13,27 +19,47 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { LoginData } from '@/types'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { authService } from '@/services'
+import type { LoginRequest } from '@/types/api'
+
+const loginSchema = z.object({
+  name: z.string().min(1, 'Agent name is required'),
+  team: z.string().min(1, 'Team selection is required'),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
 
 interface LoginViewProps {
-  onLogin: (data: LoginData) => Promise<void>
-  error?: string | null
+  onLoginSuccess: () => void
 }
 
-export function LoginView({ onLogin, error }: LoginViewProps): JSX.Element {
-  const [name, setName] = useState<string>('')
-  const [team, setTeam] = useState<string>('Metro Manila North')
-  const [loading, setLoading] = useState<boolean>(false)
+export function LoginView({ onLoginSuccess }: LoginViewProps): JSX.Element {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault()
-    if (!name.trim()) return
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      name: '',
+      team: 'Metro Manila North',
+    },
+  })
 
+  const onSubmit = async (values: LoginFormValues): Promise<void> => {
     setLoading(true)
+    setError(null)
+
     try {
-      await onLogin({ name, team })
+      const loginRequest: LoginRequest = {
+        name: values.name,
+        team: values.team,
+      }
+
+      await authService.login(loginRequest)
+      onLoginSuccess()
     } catch (err) {
-      // Error is handled by parent component
+      setError(err instanceof Error ? err.message : 'Login failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -41,56 +67,79 @@ export function LoginView({ onLogin, error }: LoginViewProps): JSX.Element {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md shadow-lg">
+      <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center space-y-4">
           <div className="bg-primary w-16 h-16 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
             <Droplets className="w-8 h-8 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl">Aquapure Sales Portal</CardTitle>
-          <CardDescription>Consultative Selling & Reporting System</CardDescription>
+          <div>
+            <CardTitle className="text-2xl font-bold text-foreground">
+              Aquapure Sales Portal
+            </CardTitle>
+            <CardDescription>Consultative Selling & Reporting System</CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="font-bold">
-                Agent Name
-              </Label>
-              <Input
-                id="name"
-                type="text"
-                required
-                placeholder="e.g. Juan dela Cruz"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {error && (
+                <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg border border-destructive/20">
+                  {error}
+                </div>
+              )}
+
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Agent Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g. Juan dela Cruz"
+                        {...field}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="team" className="font-bold">
-                Sales Team / Region
-              </Label>
-              <Select value={team} onValueChange={setTeam}>
-                <SelectTrigger id="team" className="w-full">
-                  <SelectValue placeholder="Select team" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Metro Manila North">Metro Manila North</SelectItem>
-                  <SelectItem value="Metro Manila South">Metro Manila South</SelectItem>
-                  <SelectItem value="Central Luzon">Central Luzon</SelectItem>
-                  <SelectItem value="Cebu / Visayas">Cebu / Visayas</SelectItem>
-                  <SelectItem value="Mindanao">Mindanao</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {error && (
-              <div className="bg-destructive/10 text-destructive-foreground p-3 rounded-lg text-sm border border-destructive/20">
-                {error}
-              </div>
-            )}
-            <Button variant="default" className="w-full py-6 text-lg" disabled={loading}>
-              {loading ? 'Accessing Portal...' : 'Enter Dashboard'}
-            </Button>
-          </form>
+
+              <FormField
+                control={form.control}
+                name="team"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sales Team / Region</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={loading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select team" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Metro Manila North">Metro Manila North</SelectItem>
+                        <SelectItem value="Metro Manila South">Metro Manila South</SelectItem>
+                        <SelectItem value="Central Luzon">Central Luzon</SelectItem>
+                        <SelectItem value="Cebu / Visayas">Cebu / Visayas</SelectItem>
+                        <SelectItem value="Mindanao">Mindanao</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading ? 'Accessing Portal...' : 'Enter Dashboard'}
+              </Button>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>

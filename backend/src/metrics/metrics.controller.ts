@@ -1,34 +1,37 @@
-// Metrics Controller
-// Following coding standards: Rule 17, Rule 19
+// Metrics Controller - Metrics endpoints
+// Following coding standards: Rule 5, Rule 12, Rule 17, Rule 19
 
 import { Controller, Get, Put, Body, UseGuards } from '@nestjs/common'
 import { MetricsService } from './metrics.service'
-import { UpdateMetricDto } from './dto/update-metric.dto'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { UpdateMetricDto } from '../common/dto/update-metric.dto'
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard'
 import { CurrentUser } from '../common/decorators/current-user.decorator'
-import { ApiResponseDto } from '../common/dto/api-response.dto'
+import type { CurrentUserPayload } from '../common/decorators/current-user.decorator'
 
-interface User {
-  id: string
-}
-
-@Controller('metrics')
+@Controller('api/metrics')
 @UseGuards(JwtAuthGuard)
 export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
 
   @Get('weekly')
-  async getWeekly(@CurrentUser() user: User): Promise<ApiResponseDto<unknown>> {
-    const metrics = await this.metricsService.getWeeklyMetrics(user.id)
-    return new ApiResponseDto(metrics)
+  async getMetrics(@CurrentUser() user: CurrentUserPayload): Promise<{ data: unknown; success: boolean }> {
+    const metrics = await this.metricsService.getMetrics(user.userId)
+    return {
+      data: metrics,
+      success: true,
+    }
   }
 
   @Put('weekly')
   async updateMetric(
-    @CurrentUser() user: User,
-    @Body() updateMetricDto: UpdateMetricDto,
-  ): Promise<ApiResponseDto<unknown>> {
-    const metrics = await this.metricsService.updateMetric(user.id, updateMetricDto)
-    return new ApiResponseDto(metrics, 'Metric updated successfully')
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() updateMetricDto: UpdateMetricDto
+  ): Promise<{ data: unknown; success: boolean; message?: string }> {
+    const metrics = await this.metricsService.updateMetric(user.userId, updateMetricDto)
+    return {
+      data: metrics,
+      success: true,
+      message: 'Metric updated successfully',
+    }
   }
 }

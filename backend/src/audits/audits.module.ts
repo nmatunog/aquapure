@@ -1,4 +1,6 @@
-// Audits Module
+// Audits Module - Audit management
+// Following coding standards: Rule 11
+
 import { Module } from '@nestjs/common'
 import { AuditsService } from './audits.service'
 import { AuditsController } from './audits.controller'
@@ -6,5 +8,6 @@ import { AuditsController } from './audits.controller'
 @Module({
   controllers: [AuditsController],
   providers: [AuditsService],
+  exports: [AuditsService],
 })
 export class AuditsModule {}

@@ -1,9 +1,12 @@
 'use client'
 
+// Reports View Component
+// Following coding standards: Rule 30, Rule 31, Rule 58, Rule 104
+
 import { useState, useEffect } from 'react'
 import { TrendingUp, FileText } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -13,137 +16,171 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { SavedAudit, WeeklyMetrics, UserProfile } from '@/types'
-import { auditService } from '@/services/audit-service'
-import { metricsService } from '@/services/metrics-service'
-import { authStorage } from '@/lib/auth-storage'
+import { auditsService, metricsService } from '@/services'
+import type { SavedAudit, WeeklyMetrics, UserProfile } from '@/types'
 
 interface ReportsViewProps {
-  profile: UserProfile | null
+  profile: UserProfile
 }
 
 export function ReportsView({ profile }: ReportsViewProps): JSX.Element {
   const [audits, setAudits] = useState<SavedAudit[]>([])
-  const [metrics, setMetrics] = useState<WeeklyMetrics>({
-    dealerAudits: 0,
-    hoaSurveys: 0,
-    industrialMeetings: 0,
-    dealerConversions: 0,
-    newRefillStations: 0,
-    bulkContracts: 0,
-  })
+  const [metrics, setMetrics] = useState<WeeklyMetrics | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const loadData = async (): Promise<void> => {
-      const token = authStorage.getToken()
-      if (!token) return
-
-      try {
-        const [auditsData, metricsData] = await Promise.all([
-          auditService.getAudits(token),
-          metricsService.getMetrics(token),
-        ])
-
-        // Convert API response to SavedAudit format
-        const convertedAudits: SavedAudit[] = auditsData.map((audit) => ({
-          id: audit.id,
-          type: audit.type,
-          data: audit.data as SavedAudit['data'],
-          timestamp: audit.createdAt
-            ? {
-                seconds: Math.floor(new Date(audit.createdAt).getTime() / 1000),
-                nanoseconds: 0,
-              }
-            : null,
-          summary: audit.summary,
-        }))
-
-        setAudits(convertedAudits)
-        setMetrics(metricsData)
-      } catch (error) {
-        console.error('Error loading reports data', error)
-      }
-    }
-
     loadData()
   }, [])
 
+  const loadData = async (): Promise<void> => {
+    setLoading(true)
+    setError(null)
+    try {
+      const [auditsData, metricsData] = await Promise.all([
+        auditsService.findAll(),
+        metricsService.getMetrics(),
+      ])
+
+      // Transform API response to SavedAudit format
+      const transformedAudits: SavedAudit[] = auditsData.map((audit) => ({
+        id: audit.id,
+        type: audit.type as 'Dealer' | 'HOA' | 'Industrial',
+        data: audit.data as SavedAudit['data'],
+        summary: audit.summary,
+        createdAt: audit.createdAt,
+      }))
+
+      setAudits(transformedAudits)
+      setMetrics(metricsData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load reports data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePrint = (): void => {
+    window.print()
+  }
+
+  if (loading) {
+    return <div className="p-8 text-center text-muted-foreground">Loading reports...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-center">
+        <div className="bg-destructive/10 text-destructive p-4 rounded-lg border border-destructive/20 mb-4">
+          {error}
+        </div>
+        <Button onClick={loadData} variant="outline">
+          Retry
+        </Button>
+      </div>
+    )
+  }
+
   const totalActivity =
-    (metrics.dealerAudits || 0) +
-    (metrics.hoaSurveys || 0) +
-    (metrics.industrialMeetings || 0)
+    (metrics?.dealerAudits || 0) +
+    (metrics?.hoaSurveys || 0) +
+    (metrics?.industrialMeetings || 0)
 
   const totalConversions =
-    (metrics.dealerConversions || 0) +
-    (metrics.newRefillStations || 0) +
-    (metrics.bulkContracts || 0)
+    (metrics?.dealerConversions || 0) +
+    (metrics?.newRefillStations || 0) +
+    (metrics?.bulkContracts || 0)
+
+  const formatDate = (dateString: string): string => {
+    try {
+      return new Date(dateString).toLocaleDateString()
+    } catch {
+      return 'Just now'
+    }
+  }
 
   const getAuditValue = (audit: SavedAudit): string => {
-    if (audit.type === 'Dealer' && 'netProfit' in audit.data) {
-      return `Proj. Profit: ₱${(audit.data.netProfit || 0).toLocaleString()}`
+    if (audit.type === 'Dealer') {
+      const data = audit.data as { netProfit?: number }
+      return `Proj. Profit: ₱${(data.netProfit || 0).toLocaleString()}`
     }
-    if (audit.type === 'HOA' && 'units' in audit.data && 'deliveriesPerUnit' in audit.data) {
-      return `Risk: ${((audit.data.units || 0) * (audit.data.deliveriesPerUnit || 0)).toLocaleString()} entries`
+    if (audit.type === 'HOA') {
+      const data = audit.data as { units?: number; deliveriesPerUnit?: number }
+      const entries = (data.units || 0) * (data.deliveriesPerUnit || 0)
+      return `Risk: ${entries.toLocaleString()} entries`
     }
-    if (audit.type === 'Industrial' && 'risk' in audit.data) {
-      return `Risk: ₱${(audit.data.risk || 0).toLocaleString()}`
+    if (audit.type === 'Industrial') {
+      const data = audit.data as { risk?: number }
+      return `Risk: ₱${(data.risk || 0).toLocaleString()}`
     }
     return 'N/A'
   }
 
-  const formatDate = (timestamp: SavedAudit['timestamp']): string => {
-    if (!timestamp || !timestamp.seconds) return 'Just now'
-    return new Date(timestamp.seconds * 1000).toLocaleDateString()
-  }
-
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
-      <Card className="bg-card border-border">
-        <CardContent className="p-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-card-foreground">Business Review Report</h2>
-            <p className="text-muted-foreground text-sm">
-              Prepared for: <span className="text-foreground font-bold">{profile?.name}</span> (
-              {profile?.team})
-            </p>
+      <Card className="bg-primary text-primary-foreground">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-2xl font-bold">Business Review Report</CardTitle>
+              <CardDescription className="text-primary-foreground/80 text-sm mt-1">
+                Prepared for: <span className="font-bold">{profile.name}</span> ({profile.team})
+              </CardDescription>
+            </div>
+            <Button variant="secondary" onClick={handlePrint}>
+              <FileText className="w-4 h-4 mr-2" />
+              Print PDF
+            </Button>
           </div>
-          <Button variant="secondary" onClick={() => window.print()}>
-            <FileText className="w-4 h-4" /> Print PDF
-          </Button>
-        </CardContent>
+        </CardHeader>
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-primary/10 border-primary/20">
-          <CardContent className="p-4">
-            <h3 className="text-primary font-bold text-xs uppercase mb-2">Total Activity (Week)</h3>
+          <CardHeader>
+            <CardDescription className="text-primary font-bold text-xs uppercase">
+              Total Activity (Week)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <div className="text-3xl font-bold text-primary">{totalActivity}</div>
-            <p className="text-xs text-primary/80 mt-1">Audits & Surveys Conducted</p>
+            <p className="text-xs text-muted-foreground mt-1">Audits & Surveys Conducted</p>
           </CardContent>
         </Card>
 
         <Card className="bg-primary/10 border-primary/20">
-          <CardContent className="p-4">
-            <h3 className="text-primary font-bold text-xs uppercase mb-2">Total Conversions</h3>
+          <CardHeader>
+            <CardDescription className="text-primary font-bold text-xs uppercase">
+              Total Conversions
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <div className="text-3xl font-bold text-primary">{totalConversions}</div>
-            <p className="text-xs text-primary/80 mt-1">Closed Deals</p>
+            <p className="text-xs text-muted-foreground mt-1">Closed Deals</p>
           </CardContent>
         </Card>
 
         <Card className="bg-primary/10 border-primary/20">
-          <CardContent className="p-4">
-            <h3 className="text-primary font-bold text-xs uppercase mb-2">Pipeline Depth</h3>
+          <CardHeader>
+            <CardDescription className="text-primary font-bold text-xs uppercase">
+              Pipeline Depth
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <div className="text-3xl font-bold text-primary">{audits.length}</div>
-            <p className="text-xs text-primary/80 mt-1">Active Opportunities</p>
+            <p className="text-xs text-muted-foreground mt-1">Active Opportunities</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
-        <CardContent className="p-6">
-          <h3 className="font-bold text-card-foreground mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" /> Recent Opportunity Pipeline
-          </h3>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            Recent Opportunity Pipeline
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -157,16 +194,14 @@ export function ReportsView({ profile }: ReportsViewProps): JSX.Element {
               <TableBody>
                 {audits.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground italic py-8">
+                    <TableCell colSpan={4} className="text-center text-muted-foreground italic">
                       No saved audits found. Use the Audit Tools to save opportunities.
                     </TableCell>
                   </TableRow>
                 ) : (
                   audits.map((audit) => (
                     <TableRow key={audit.id}>
-                      <TableCell className="font-medium text-foreground">
-                        {formatDate(audit.timestamp)}
-                      </TableCell>
+                      <TableCell className="font-medium">{formatDate(audit.createdAt)}</TableCell>
                       <TableCell>
                         <Badge
                           variant={
@@ -180,9 +215,11 @@ export function ReportsView({ profile }: ReportsViewProps): JSX.Element {
                           {audit.type}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{getAuditValue(audit)}</TableCell>
+                      <TableCell>{getAuditValue(audit)}</TableCell>
                       <TableCell>
-                        <span className="text-primary font-bold text-xs">In Progress</span>
+                        <Badge variant="outline" className="text-primary">
+                          In Progress
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   ))

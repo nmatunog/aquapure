@@ -1,13 +1,12 @@
-// Create Audit DTO - Request validation
-// Following coding standards: Rule 13, Rule 18
+// Create Audit DTO
+// Following coding standards: Rule 13, Rule 18, Rule 19
 
-import { IsString, IsNotEmpty, IsIn, IsObject } from 'class-validator'
+import { IsString, IsNotEmpty, IsObject } from 'class-validator'
 
 export class CreateAuditDto {
   @IsString()
   @IsNotEmpty()
-  @IsIn(['Dealer', 'HOA', 'Industrial'])
-  type: 'Dealer' | 'HOA' | 'Industrial'
+  type: string
 
   @IsObject()
   @IsNotEmpty()

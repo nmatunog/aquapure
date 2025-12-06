@@ -47,22 +47,33 @@
 - ✅ Client components marked with `'use client'` directive
 - ✅ Server components by default (where applicable)
 
+### 7. Backend API Integration
+- ✅ Created API service layer in `/services/` directory
+- ✅ Implemented `ApiClient` base class with error handling and token management
+- ✅ Created `AuthService` for authentication endpoints
+- ✅ Created `AuditsService` for audit CRUD operations
+- ✅ Created `MetricsService` for weekly metrics management
+- ✅ Defined proper TypeScript types for all API requests and responses
+- ✅ Implemented environment variable configuration and validation
+- ✅ Added JWT token management with localStorage integration
+
+### 8. Project Configuration
+- ✅ Created TypeScript configuration with strict mode enabled
+- ✅ Set up Tailwind CSS configuration with shadcn/ui design tokens
+- ✅ Created Next.js configuration file
+- ✅ Set up environment variable structure
+
 ## ⚠️ Remaining Work
 
-### 1. Backend API Integration (High Priority)
-The code currently uses Firebase directly. According to the coding standards, the frontend should communicate with the backend only through HTTP APIs.
+### 1. Component Integration with API Services
+The API service layer is ready. Components need to be updated to use the new services instead of Firebase.
 
 **TODO:**
-- [ ] Create API service layer in `/services/` directory
-- [ ] Replace Firebase calls with API calls to NestJS backend
-- [ ] Implement proper error handling for API calls
-- [ ] Add loading states and error boundaries
-
-**Files that need API integration:**
-- `src/app/page.tsx` - Authentication and profile management
-- `src/components/audit/audit-tools.tsx` - Save audit functionality
-- `src/components/scorecard/scorecard.tsx` - Metrics fetching and updates
-- `src/components/reports/reports-view.tsx` - Reports data fetching
+- [ ] Update `src/app/page.tsx` - Replace Firebase auth with `authService`
+- [ ] Create/update `src/components/audit/audit-tools.tsx` - Use `auditsService` for save functionality
+- [ ] Create/update `src/components/scorecard/scorecard.tsx` - Use `metricsService` for metrics
+- [ ] Create/update `src/components/reports/reports-view.tsx` - Use API services for reports
+- [ ] Add loading states and error boundaries using shadcn/ui components
 
 ### 2. Form Validation
 - [ ] Implement react-hook-form with zod schemas for all forms
@@ -70,9 +81,9 @@ The code currently uses Firebase directly. According to the coding standards, th
 - [ ] Add validation to audit tool inputs
 
 ### 3. Environment Variables
-- [ ] Move Firebase config to environment variables
-- [ ] Create `.env.example` file
-- [ ] Set up proper environment variable validation
+- ✅ Created `.env.example` file (blocked by gitignore, but structure is documented)
+- ✅ Set up proper environment variable validation in `src/lib/env.ts`
+- [ ] Move Firebase config to environment variables (if still needed during migration)
 
 ### 4. Error Handling
 - [ ] Add error boundaries for better error handling
@@ -100,8 +111,17 @@ frontend/
 │   │   ├── scorecard/           # Scorecard components
 │   │   ├── reports/             # Reports components
 │   │   └── layout/              # Layout components
+│   ├── services/                # API service layer
+│   │   ├── auth.service.ts     # Authentication service
+│   │   ├── audits.service.ts   # Audits service
+│   │   ├── metrics.service.ts  # Metrics service
+│   │   └── index.ts            # Service exports
 │   ├── types/                   # TypeScript type definitions
+│   │   └── api.ts              # API request/response types
 │   └── lib/                     # Utility functions
+│       ├── api-client.ts       # Base API client with error handling
+│       ├── env.ts              # Environment variable validation
+│       └── utils.ts            # General utilities
 ├── package.json
 ├── tsconfig.json
 ├── tailwind.config.ts
@@ -129,8 +149,37 @@ All components now use:
 
 ## 📝 Notes
 
-- Firebase integration is kept temporarily for backward compatibility
-- All Firebase calls should be replaced with API calls to NestJS backend
-- The code is ready for production once API integration is complete
-- All components are properly typed and follow Next.js App Router conventions
+- **API Service Layer Complete**: All backend API endpoints are now accessible through typed service classes
+- **Token Management**: JWT tokens are automatically stored in localStorage and included in API requests
+- **Error Handling**: Centralized error handling with `ApiClientError` class for consistent error management
+- **Type Safety**: All API requests and responses are fully typed with TypeScript interfaces
+- **Next Steps**: Components need to be updated to use the new API services instead of Firebase
+- All code follows Next.js App Router conventions and coding standards from `.cursorrules`
+
+## 🔌 API Service Usage Examples
+
+```typescript
+// Authentication
+import { authService } from '@/services'
+
+const loginResponse = await authService.login({ name: 'John', team: 'Sales' })
+const profile = await authService.getProfile()
+await authService.logout()
+
+// Audits
+import { auditsService } from '@/services'
+
+const audit = await auditsService.create({
+  type: 'dealer',
+  data: { /* audit data */ },
+  summary: 'Audit summary'
+})
+const audits = await auditsService.findAll()
+
+// Metrics
+import { metricsService } from '@/services'
+
+const metrics = await metricsService.getMetrics()
+await metricsService.updateMetric({ metricKey: 'dealerAudits', value: 5 })
+```
 

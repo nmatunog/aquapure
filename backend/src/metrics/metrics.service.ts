@@ -1,15 +1,24 @@
-// Metrics Service
-// Following coding standards: Rule 11, Rule 12, Rule 18, Rule 19, Rule 20
+// Metrics Service - Weekly metrics management
+// Following coding standards: Rule 11, Rule 12, Rule 17, Rule 18, Rule 19, Rule 20
 
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import { UpdateMetricDto } from './dto/update-metric.dto'
+import { UpdateMetricDto } from '../common/dto/update-metric.dto'
+
+export interface WeeklyMetricsResponse {
+  dealerAudits: number
+  hoaSurveys: number
+  industrialMeetings: number
+  dealerConversions: number
+  newRefillStations: number
+  bulkContracts: number
+}
 
 @Injectable()
 export class MetricsService {
   constructor(private prisma: PrismaService) {}
 
-  async getWeeklyMetrics(userId: string) {
+  async getMetrics(userId: string): Promise<WeeklyMetricsResponse> {
     let metrics = await this.prisma.weeklyMetrics.findUnique({
       where: { userId },
     })
@@ -29,11 +38,18 @@ export class MetricsService {
       })
     }
 
-    return metrics
+    return {
+      dealerAudits: metrics.dealerAudits,
+      hoaSurveys: metrics.hoaSurveys,
+      industrialMeetings: metrics.industrialMeetings,
+      dealerConversions: metrics.dealerConversions,
+      newRefillStations: metrics.newRefillStations,
+      bulkContracts: metrics.bulkContracts,
+    }
   }
 
-  async updateMetric(userId: string, updateMetricDto: UpdateMetricDto) {
-    // Get or create metrics
+  async updateMetric(userId: string, updateMetricDto: UpdateMetricDto): Promise<WeeklyMetricsResponse> {
+    // Ensure metrics exist
     let metrics = await this.prisma.weeklyMetrics.findUnique({
       where: { userId },
     })
@@ -53,11 +69,22 @@ export class MetricsService {
     }
 
     // Update the specific metric
-    return this.prisma.weeklyMetrics.update({
+    const updateData: Record<string, number> = {
+      [updateMetricDto.metricKey]: updateMetricDto.value,
+    }
+
+    const updated = await this.prisma.weeklyMetrics.update({
       where: { userId },
-      data: {
-        [updateMetricDto.metricKey]: updateMetricDto.value,
-      },
+      data: updateData,
     })
+
+    return {
+      dealerAudits: updated.dealerAudits,
+      hoaSurveys: updated.hoaSurveys,
+      industrialMeetings: updated.industrialMeetings,
+      dealerConversions: updated.dealerConversions,
+      newRefillStations: updated.newRefillStations,
+      bulkContracts: updated.bulkContracts,
+    }
   }
 }

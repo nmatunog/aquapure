@@ -1,25 +1,18 @@
-// Main Application Module
-// Following coding standards: Rule 11, Rule 12
+// App Module - Root module
+// Following coding standards: Rule 11
 
 import { Module } from '@nestjs/common'
-import { APP_GUARD } from '@nestjs/core'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { PrismaModule } from './prisma/prisma.module'
 import { AuthModule } from './auth/auth.module'
+import { UsersModule } from './users/users.module'
 import { AuditsModule } from './audits/audits.module'
 import { MetricsModule } from './metrics/metrics.module'
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 
 @Module({
-  imports: [PrismaModule, AuthModule, AuditsModule, MetricsModule],
+  imports: [PrismaModule, AuthModule, UsersModule, AuditsModule, MetricsModule],
   controllers: [AppController],
-  providers: [
-    AppService,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-  ],
+  providers: [AppService],
 })
 export class AppModule {}
