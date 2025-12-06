@@ -46,7 +46,7 @@ export function ReportsView({ profile }: ReportsViewProps): JSX.Element {
       const transformedAudits: SavedAudit[] = auditsData.map((audit) => ({
         id: audit.id,
         type: audit.type as 'Dealer' | 'HOA' | 'Industrial',
-        data: audit.data as SavedAudit['data'],
+        data: audit.data as unknown as SavedAudit['data'],
         summary: audit.summary,
         createdAt: audit.createdAt,
       }))
