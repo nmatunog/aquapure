@@ -6,7 +6,7 @@
 import { useState, useCallback, useMemo, useRef } from 'react'
 import { Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -37,7 +37,16 @@ export function AuditTools(): JSX.Element {
   })
 
   // Use refs to store input values without triggering re-renders
-  const dealerInputRefs = useRef<Record<keyof DealerAuditData, HTMLInputElement | null>>({
+  // Only include actual input fields, not calculated fields like netProfit
+  const dealerInputRefs = useRef<{
+    dailyOutput: HTMLInputElement | null
+    sellingPrice: HTMLInputElement | null
+    electricity: HTMLInputElement | null
+    rent: HTMLInputElement | null
+    labor: HTMLInputElement | null
+    maint: HTMLInputElement | null
+    daysOpen: HTMLInputElement | null
+  }>({
     dailyOutput: null,
     sellingPrice: null,
     electricity: null,
@@ -91,7 +100,7 @@ export function AuditTools(): JSX.Element {
 
       await auditsService.create({
         type,
-        data: data as Record<string, unknown>,
+        data: data as unknown as Record<string, unknown>,
         summary,
       })
 
@@ -104,7 +113,7 @@ export function AuditTools(): JSX.Element {
     }
   }
 
-  const handleDealerCommit = useCallback((field: keyof DealerAuditData): void => {
+  const handleDealerCommit = useCallback((field: keyof typeof dealerInputRefs.current): void => {
     // Get value directly from input ref - no state updates during typing
     const input = dealerInputRefs.current[field]
     if (!input) return
@@ -152,7 +161,9 @@ export function AuditTools(): JSX.Element {
                 Daily Output
               </Label>
               <Input
-                ref={(el) => (dealerInputRefs.current.dailyOutput = el)}
+                ref={(el) => {
+                  dealerInputRefs.current.dailyOutput = el
+                }}
                 type="text"
                 inputMode="numeric"
                 defaultValue={dealer.dailyOutput.toString()}
@@ -175,7 +186,9 @@ export function AuditTools(): JSX.Element {
                 Selling Price
               </Label>
               <Input
-                ref={(el) => (dealerInputRefs.current.sellingPrice = el)}
+                ref={(el) => {
+                  dealerInputRefs.current.sellingPrice = el
+                }}
                 type="text"
                 inputMode="numeric"
                 defaultValue={dealer.sellingPrice.toString()}
@@ -197,7 +210,9 @@ export function AuditTools(): JSX.Element {
                 Electricity
               </Label>
               <Input
-                ref={(el) => (dealerInputRefs.current.electricity = el)}
+                ref={(el) => {
+                  dealerInputRefs.current.electricity = el
+                }}
                 type="text"
                 inputMode="numeric"
                 defaultValue={dealer.electricity.toString()}
@@ -217,7 +232,9 @@ export function AuditTools(): JSX.Element {
             <div>
               <Label className="text-xs font-bold uppercase text-muted-foreground">Rent</Label>
               <Input
-                ref={(el) => (dealerInputRefs.current.rent = el)}
+                ref={(el) => {
+                  dealerInputRefs.current.rent = el
+                }}
                 type="text"
                 inputMode="numeric"
                 defaultValue={dealer.rent.toString()}
@@ -237,7 +254,9 @@ export function AuditTools(): JSX.Element {
             <div>
               <Label className="text-xs font-bold uppercase text-muted-foreground">Labor</Label>
               <Input
-                ref={(el) => (dealerInputRefs.current.labor = el)}
+                ref={(el) => {
+                  dealerInputRefs.current.labor = el
+                }}
                 type="text"
                 inputMode="numeric"
                 defaultValue={dealer.labor.toString()}
@@ -259,7 +278,9 @@ export function AuditTools(): JSX.Element {
                 Maintenance
               </Label>
               <Input
-                ref={(el) => (dealerInputRefs.current.maint = el)}
+                ref={(el) => {
+                  dealerInputRefs.current.maint = el
+                }}
                 type="text"
                 inputMode="numeric"
                 defaultValue={dealer.maint.toString()}
@@ -281,7 +302,9 @@ export function AuditTools(): JSX.Element {
                 Days Open
               </Label>
               <Input
-                ref={(el) => (dealerInputRefs.current.daysOpen = el)}
+                ref={(el) => {
+                  dealerInputRefs.current.daysOpen = el
+                }}
                 type="text"
                 inputMode="numeric"
                 defaultValue={dealer.daysOpen.toString()}
@@ -346,12 +369,6 @@ export function AuditTools(): JSX.Element {
     }
   }, [])
 
-  const handleHoaChange = useCallback((field: keyof HOAAuditData, value: string | number): void => {
-    // For non-input fields (Select), update immediately
-    if (field !== 'units' && field !== 'deliveriesPerUnit') {
-      setHoa((prev) => ({ ...prev, [field]: value }))
-    }
-  }, [])
 
   const HOACalc = (): JSX.Element => {
     return (
@@ -374,7 +391,9 @@ export function AuditTools(): JSX.Element {
                 Number of Units
               </Label>
               <Input
-                ref={(el) => (hoaInputRefs.current.units = el)}
+                ref={(el) => {
+                  hoaInputRefs.current.units = el
+                }}
                 type="text"
                 inputMode="numeric"
                 defaultValue={hoa.units.toString()}
@@ -396,7 +415,9 @@ export function AuditTools(): JSX.Element {
                 Deliveries/Unit/Mo
               </Label>
               <Input
-                ref={(el) => (hoaInputRefs.current.deliveriesPerUnit = el)}
+                ref={(el) => {
+                  hoaInputRefs.current.deliveriesPerUnit = el
+                }}
                 type="text"
                 inputMode="numeric"
                 defaultValue={hoa.deliveriesPerUnit.toString()}
@@ -507,7 +528,9 @@ export function AuditTools(): JSX.Element {
                 Downtime Cost (₱/hr)
               </Label>
               <Input
-                ref={(el) => (indInputRefs.current.downtimeCost = el)}
+                ref={(el) => {
+                  indInputRefs.current.downtimeCost = el
+                }}
                 type="text"
                 inputMode="numeric"
                 defaultValue={indInputs.downtimeCost.toString()}
@@ -547,7 +570,9 @@ export function AuditTools(): JSX.Element {
                 Repair Time (hrs)
               </Label>
               <Input
-                ref={(el) => (indInputRefs.current.repairTime = el)}
+                ref={(el) => {
+                  indInputRefs.current.repairTime = el
+                }}
                 type="text"
                 inputMode="numeric"
                 defaultValue={indInputs.repairTime.toString()}
