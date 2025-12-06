@@ -55,10 +55,10 @@ npm install && npm run build
 
 **Start Command:**
 ```
-npm run start:prod
+npm run migrate:deploy && npm run start:prod
 ```
 
-**Note:** The start command will automatically run `prisma migrate deploy` to create database tables before starting the server.
+**Note:** This runs migrations first, then starts the server. If migrations fail, the app won't start (preventing 500 errors).
 
 **Plan:** **Free** (select this!)
 

@@ -10,11 +10,18 @@ async function bootstrap(): Promise<void> {
   // Run database migrations before starting the app
   try {
     console.log('🔄 Running database migrations...')
-    execSync('npx prisma migrate deploy', { stdio: 'inherit' })
+    // Run from backend directory (where prisma folder is)
+    const backendDir = __dirname.includes('dist') ? __dirname.replace('/dist/src', '') : process.cwd()
+    execSync('npx prisma migrate deploy', { 
+      stdio: 'inherit',
+      cwd: backendDir,
+      env: { ...process.env }
+    })
     console.log('✅ Database migrations completed')
   } catch (error) {
     console.error('❌ Migration failed:', error)
-    // Continue anyway - might be a connection issue that will resolve
+    console.error('⚠️  Continuing anyway - tables may not exist yet')
+    // Continue anyway - app will fail on first DB query if tables don't exist
   }
 
   const app = await NestFactory.create(AppModule)
