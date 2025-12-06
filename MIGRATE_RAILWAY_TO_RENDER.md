@@ -43,6 +43,8 @@
   - **Runtime:** `Node`
   - **Build Command:** `npm install && npm run build`
   - **Start Command:** `npm run start:prod`
+  
+  **Note:** The build script now uses `npx nest build` to ensure NestJS CLI is found during build.
   - **Plan:** **Free**
 
 #### 1.4 Add Environment Variables

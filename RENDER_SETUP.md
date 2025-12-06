@@ -49,6 +49,8 @@ Fill in the form:
 npm install && npm run build
 ```
 
+**Note:** Make sure `npm install` installs dev dependencies (Render does this by default, but if issues persist, use `npm ci` or `npm install --include=dev`)
+
 **Start Command:**
 ```
 npm run start:prod
