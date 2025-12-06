@@ -4,7 +4,7 @@
 // Following coding standards: Rule 30, Rule 31, Rule 104
 
 import { Droplets, Building2, Factory, ArrowRight } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Accordion,
