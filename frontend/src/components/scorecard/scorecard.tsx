@@ -81,7 +81,6 @@ export function Scorecard(): JSX.Element {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [updating, setUpdating] = useState<string | null>(null)
 
   useEffect(() => {
     loadMetrics()
@@ -106,7 +105,6 @@ export function Scorecard(): JSX.Element {
 
     // Optimistic update
     setMetrics(newMetrics)
-    setUpdating(key)
 
     try {
       await metricsService.updateMetric({
@@ -117,8 +115,6 @@ export function Scorecard(): JSX.Element {
       // Revert on error
       setMetrics(metrics)
       setError(err instanceof Error ? err.message : 'Failed to update metric')
-    } finally {
-      setUpdating(null)
     }
   }
 
