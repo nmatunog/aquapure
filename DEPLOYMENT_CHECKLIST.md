@@ -76,14 +76,14 @@
 
 ## Environment Variables Summary
 
-### Railway (Backend)
+### Render (Backend)
 ```
-DATABASE_URL=<from PostgreSQL service>
+DATABASE_URL=<Internal Database URL from PostgreSQL>
 JWT_SECRET=5C9lOoFWuDVYi/QvMWuvm8hJocVCVBcXin8BY9K2ap4=
 JWT_EXPIRES_IN=7d
-CORS_ORIGIN=https://your-app.vercel.app
+CORS_ORIGIN=https://your-app-name.netlify.app
 NODE_ENV=production
-PORT=3001
+PORT=10000
 ```
 
 ### Netlify (Frontend)
