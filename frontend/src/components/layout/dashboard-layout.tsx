@@ -21,7 +21,7 @@ interface NavItemProps {
   onClick: () => void
 }
 
-function NavItem({ id, icon, label, active, onClick }: NavItemProps): JSX.Element {
+function NavItem({ icon, label, active, onClick }: NavItemProps): JSX.Element {
   return (
     <button
       onClick={onClick}
