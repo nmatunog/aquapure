@@ -1,4 +1,4 @@
-# Deployment Checklist - Vercel + Railway
+# Deployment Checklist - Netlify + Render (Free Tier)
 
 ## Pre-Deployment
 
@@ -8,39 +8,37 @@
 - [x] Frontend builds successfully (`npm run build` in frontend/)
 - [x] Database migrations ready
 
-## Step 1: Deploy Backend on Railway
+## Step 1: Deploy Backend on Render (Free Tier)
 
-### Railway Setup
-- [ ] Sign up at https://railway.app (use GitHub login)
-- [ ] Create new project → "Deploy from GitHub repo"
-- [ ] Select repository: `nmatunog/aquapure`
-
-### PostgreSQL Database
-- [ ] Add PostgreSQL database service
-- [ ] Copy `DATABASE_URL` from database service Variables tab
-
-### Backend Service
-- [ ] Add backend service from GitHub repo
-- [ ] Set Root Directory to: `backend`
+### Render Setup
+- [ ] Sign up at https://render.com (use GitHub login, no credit card needed!)
+- [ ] Create PostgreSQL database:
+  - [ ] Click "New +" → "PostgreSQL"
+  - [ ] Select **Free** plan
+  - [ ] Copy Internal Database URL
+- [ ] Create Web Service:
+  - [ ] Click "New +" → "Web Service"
+  - [ ] Connect GitHub → Select `nmatunog/aquapure`
+  - [ ] Set Root Directory to: `backend`
+  - [ ] Build Command: `npm install && npm run build`
+  - [ ] Start Command: `npm run start:prod`
+  - [ ] Select **Free** plan
 - [ ] Configure environment variables:
-  - [ ] `DATABASE_URL` = (from PostgreSQL service)
-  - [ ] `JWT_SECRET` = `5C9lOoFWuDVYi/QvMWuvm8hJocVCVBcXin8BY9K2ap4=` (or generate new)
+  - [ ] `DATABASE_URL` = (Internal Database URL from PostgreSQL)
+  - [ ] `JWT_SECRET` = `5C9lOoFWuDVYi/QvMWuvm8hJocVCVBcXin8BY9K2ap4=`
   - [ ] `JWT_EXPIRES_IN` = `7d`
   - [ ] `CORS_ORIGIN` = `https://your-app-name.netlify.app` (update after frontend deploy)
   - [ ] `NODE_ENV` = `production`
-  - [ ] `PORT` = `3001`
-- [ ] Configure build settings:
-  - [ ] Build Command: `npm install && npm run build`
-  - [ ] Start Command: `npm run start:prod`
-- [ ] Wait for first deployment
-- [ ] Run migrations in Railway shell:
+  - [ ] `PORT` = `10000` (Render default, or use `process.env.PORT`)
+- [ ] Wait for first deployment (~3-5 minutes)
+- [ ] Run migrations in Render Shell:
   ```bash
   cd backend
   npx prisma migrate deploy
   npx prisma generate
   ```
-- [ ] Get backend URL from Settings → Networking → Public Domain
-- [ ] Test backend: `curl https://your-backend.up.railway.app/api/auth/login`
+- [ ] Get backend URL from service dashboard (e.g., `aquapure-backend.onrender.com`)
+- [ ] Test backend: `curl https://your-backend.onrender.com/api/auth/login`
 
 ## Step 2: Deploy Frontend on Netlify
 
@@ -61,9 +59,10 @@
 
 ## Step 3: Update CORS
 
-- [ ] Go back to Railway backend service
-- [ ] Update `CORS_ORIGIN` environment variable to: `https://your-app-name.netlify.app`
-- [ ] Railway will auto-redeploy
+- [ ] Go back to Render web service
+- [ ] Settings → Environment → Edit `CORS_ORIGIN`
+- [ ] Update to: `https://your-app-name.netlify.app`
+- [ ] Save (Render will auto-redeploy)
 
 ## Step 4: Verify Deployment
 
@@ -94,16 +93,17 @@ NEXT_PUBLIC_API_URL=https://your-backend.up.railway.app
 
 ## URLs to Save
 
-- Backend URL: `https://________________.up.railway.app`
+- Backend URL: `https://________________.onrender.com`
 - Frontend URL: `https://________________.netlify.app`
 
 ## Troubleshooting
 
 ### Backend Issues
-- Check Railway deployment logs
+- Check Render deployment logs
 - Verify all environment variables are set
 - Ensure migrations ran successfully
-- Test backend directly: `curl https://your-backend.up.railway.app/api/auth/login`
+- Test backend directly: `curl https://your-backend.onrender.com/api/auth/login`
+- Note: First request after 15 min inactivity may be slow (cold start)
 
 ### Frontend Issues
 - Check Vercel build logs
@@ -112,7 +112,8 @@ NEXT_PUBLIC_API_URL=https://your-backend.up.railway.app
 - Verify CORS is configured correctly
 
 ### Database Issues
-- Verify `DATABASE_URL` is correct
-- Check if migrations ran: `npx prisma migrate status` in Railway shell
-- Ensure database service is running
+- Verify `DATABASE_URL` is the Internal Database URL
+- Check if migrations ran: `npx prisma migrate status` in Render shell
+- Ensure database service shows "Available" status
+- Use Internal Database URL for better performance
 
