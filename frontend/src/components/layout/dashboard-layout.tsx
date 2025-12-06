@@ -53,9 +53,17 @@ export function DashboardLayout(): JSX.Element {
     try {
       if (!authService.isAuthenticated()) {
         setProfile(null)
+        setLoading(false)
         return
       }
-      const userProfile = await authService.getProfile()
+      
+      // Add timeout to prevent hanging
+      const profilePromise = authService.getProfile()
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Profile request timed out')), 10000) // 10 second timeout
+      })
+      
+      const userProfile = await Promise.race([profilePromise, timeoutPromise])
       setProfile({
         id: userProfile.id,
         name: userProfile.name,
@@ -64,8 +72,17 @@ export function DashboardLayout(): JSX.Element {
         updatedAt: userProfile.updatedAt,
       })
     } catch (err) {
+      console.error('Profile load error:', err)
+      // Don't block the UI if profile fails - user can still use the app
       setError(err instanceof Error ? err.message : 'Failed to load profile')
-      setProfile(null)
+      // Set a minimal profile so user can still use the app
+      setProfile({
+        id: 'unknown',
+        name: 'User',
+        team: 'Unknown',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
     } finally {
       setLoading(false)
     }
@@ -85,16 +102,18 @@ export function DashboardLayout(): JSX.Element {
     }
   }
 
-  if (loading) {
+  // Show login if not authenticated
+  if (!authService.isAuthenticated()) {
+    return <LoginView onLoginSuccess={handleLoginSuccess} />
+  }
+
+  // Show loading only briefly, then show dashboard even if profile is loading
+  if (loading && !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center text-primary font-bold">
         Initializing Aquapure Portal...
       </div>
     )
-  }
-
-  if (!profile) {
-    return <LoginView onLoginSuccess={handleLoginSuccess} />
   }
 
   return (
