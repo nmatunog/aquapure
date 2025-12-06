@@ -59,6 +59,12 @@ NODE_ENV = production
 PORT = 10000
 ```
 
+**⚠️ CRITICAL:** 
+- Use the **Internal Database URL** (not External!)
+- The URL must start with `postgresql://` or `postgres://`
+- Get it from PostgreSQL service → Info tab → "Internal Database URL"
+- Example: `postgresql://user:pass@dpg-xxxxx-a.oregon-postgres.render.com/aquapure`
+
 **Note:** Get `JWT_SECRET` from Railway if you want to keep same tokens, or generate new one.
 
 #### 1.5 Deploy
