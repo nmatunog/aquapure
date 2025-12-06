@@ -16,14 +16,21 @@
 - **No credit card required!**
 
 #### 1.2 Create PostgreSQL Database
-- Click "New +" → "PostgreSQL"
-- Name: `aquapure-db`
-- Database: `aquapure`
-- Region: Choose closest to you
-- Plan: **Free**
-- Click "Create Database"
-- Wait ~1 minute
-- **Copy the Internal Database URL** (save it!)
+- In Render dashboard, look for the **"New +"** button (usually top-right or in the main dashboard)
+- Click **"New +"** → Select **"PostgreSQL"** from the dropdown menu
+- Fill in the form:
+  - **Name:** `aquapure-db` (or any name you prefer)
+  - **Database:** `aquapure` (or leave default)
+  - **User:** Leave default (auto-generated)
+  - **Region:** Choose closest to you (e.g., "Oregon (US West)" for US)
+  - **PostgreSQL Version:** 15 (or latest available)
+  - **Plan:** Select **"Free"** (this is important!)
+- Click **"Create Database"**
+- Wait ~1 minute for provisioning
+- Once ready, click on the database service
+- Go to **"Info"** or **"Connections"** tab
+- **Copy the "Internal Database URL"** (starts with `postgresql://...`)
+- **Save this URL!** You'll need it for the backend service
 
 #### 1.3 Create Web Service
 - Click "New +" → "Web Service"
