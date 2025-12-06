@@ -31,22 +31,33 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto): Promise<LoginResponse> {
-    // Find or create user
-    let user = await this.prisma.user.findFirst({
-      where: {
-        name: loginDto.name,
-        team: loginDto.team,
-      },
-    })
-
-    if (!user) {
-      // Create new user if doesn't exist
-      user = await this.prisma.user.create({
-        data: {
+    let user
+    try {
+      // Find or create user
+      user = await this.prisma.user.findFirst({
+        where: {
           name: loginDto.name,
           team: loginDto.team,
         },
       })
+
+      if (!user) {
+        // Create new user if doesn't exist
+        user = await this.prisma.user.create({
+          data: {
+            name: loginDto.name,
+            team: loginDto.team,
+          },
+        })
+      }
+    } catch (error) {
+      // Provide helpful error message if tables don't exist
+      if (error instanceof Error && error.message.includes('does not exist')) {
+        throw new Error(
+          'Database tables not found. Please run migrations: npm run migrate:deploy'
+        )
+      }
+      throw error
     }
 
     // Generate JWT token
